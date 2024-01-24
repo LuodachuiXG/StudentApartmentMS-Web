@@ -1,30 +1,49 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup lang="ts">
+import { useDark, useToggle } from '@vueuse/core';
+
+// 当前是否是暗色模式
+const isDark = useDark();
+// 切换暗色模式
+const toggleDark = useToggle(isDark)
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <el-container>
+    <el-header class="head">
+      <el-row>
+        <el-col :span="18">
+          <p class="title">SAMS 学生公寓管理系统</p>
+        </el-col>
+        <el-col :span="6">
+          <div class="head-right">
+            <el-button :icon="isDark ? 'Moon' : 'Sunny'" circle @click="toggleDark()"></el-button>
+          </div>
+        </el-col>
+      </el-row>
+    </el-header>
+    <el-main>
+      <router-view></router-view>
+    </el-main>
+  </el-container>
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<style scoped lang="scss">
+.head {
+  width: 100%;
+  border-bottom: 1px solid var(--el-border-color);
+  box-shadow: var(--el-box-shadow-light);
+  line-height: 60px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.head .title {
+  font-size: 1.2em;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.head-right {
+  height: 60px;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding: 0 0vw;
 }
 </style>
