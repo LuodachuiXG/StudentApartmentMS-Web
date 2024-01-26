@@ -26,12 +26,14 @@ const asideMenus = [
   {
     name: '首页',
     pathName: 'main',
+    icon: 'House',
     role: null
   },
   // 只有管理员显示此菜单
   {
     name: '用户',
     pathName: 'allUser',
+    icon: 'User',
     role: RoleEnum.ADMIN
   },
 ];
@@ -118,7 +120,7 @@ const onLogout = () => {
           <div class="button-container">
             <div class="button-div" v-for="(menu, i) in asideMenus">
               <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
-                :text="asideMenuIndex === i ? false : true"
+                :text="asideMenuIndex === i ? false : true" :icon="menu.icon"
                 v-if="menu.role === null || (menu.role !== null && menu.role === user.role)"
                 @click="onAsideMenuChange(i)">{{ menu.name }}</el-button>
             </div>
