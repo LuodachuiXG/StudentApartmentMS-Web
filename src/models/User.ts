@@ -7,10 +7,11 @@ export interface User {
     userId: number;
     name: string;
     id: string;
+    password: string,
     role: RoleEnum;
     phone: string;
     gender: string;
-    birth: Date;
-    lastLogin: Date;
+    birth: string;
+    lastLogin: string;
     token: string;
 }

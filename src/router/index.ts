@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { StoreEnum } from '../models/StoreEnum';
 import { ElMessage } from "element-plus";
+import { RoleEnum } from '../models/RoleEnum';
+import { User } from '../models/User';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,7 +29,10 @@ const router = createRouter({
         {
             path: '/allUser',
             name: 'allUser',
-            component: () => import('../views/AllUserView.vue')
+            component: () => import('../views/AllUserView.vue'),
+            meta: {
+                role: RoleEnum.ADMIN
+            }
         },
     ]
 });
@@ -43,6 +48,20 @@ router.beforeEach(async (to, _from) => {
         });
         console.log('登录已过期，请重新登录')
         return { name: 'login' }
+    }
+
+    const viewRole: RoleEnum | undefined = to.meta.role as RoleEnum;
+    // 阻止学生访问管理员页面
+    if (viewRole !== undefined) {
+        const user = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
+        if (viewRole != user.role) {
+            router.push('main');
+            ElMessage({
+                message: `你没有权限访问 ${to.path}`,
+                duration: 2000,
+                type: 'error'
+            });
+        }
     }
 })
 

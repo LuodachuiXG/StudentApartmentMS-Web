@@ -29,17 +29,19 @@ export function login(id: string, password: string) {
  */
 export function register(name: string, id: string, password: string,
     phone: string, gender: string, birth: string) {
+    const data = {
+        name: name,
+        id: id,
+        password: password,
+        phone: phone,
+        gender: gender,
+        birth: birth
+    };
+    console.log(data);
     return service({
         url: '/user',
         method: 'POST',
-        data: {
-            name: name, 
-            id: id, 
-            password: password,
-            phone: phone, 
-            gender: gender, 
-            birth: birth
-        }
+        data: data
     })
 }
 

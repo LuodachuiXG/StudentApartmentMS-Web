@@ -4,7 +4,7 @@ import { StoreEnum } from './models/StoreEnum';
 import { User } from './models/User';
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, watch, ref } from 'vue';
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { ElMessageBox } from 'element-plus';
 import { RoleEnum } from './models/RoleEnum';
 
 // 当前路由线路
@@ -51,34 +51,8 @@ onMounted(() => {
     if (_user != null) {
       user.value = JSON.parse(_user) as User;
     }
-
-    // 如果学生用网址的形式访问管理员页面，就跳转到主页
-    const currentViewRole = getRoleByPath(route.path);
-    if (currentViewRole !== null && currentViewRole !== user.value?.role) {
-      ElMessage({
-      message: `你没有权限访问 ${route.path}`,
-      duration: 2000,
-      type: 'error'
-    });
-      router.push('main');
-    }
   });
 });
-
-/**
- * 根据左侧菜单项目的路径获取当前菜单的角色
- * 用于防止学生使用网址的形式访问管理员权限的界面
- * @param path 路径名
- */
-const getRoleByPath = (pathName: string): RoleEnum | null => {
-  let role: RoleEnum | null = null;
-  asideMenus.forEach((menu) => {
-    if (`/${menu.pathName}` === pathName) {
-      role = menu.role;
-    }
-  });
-  return role;
-}
 
 /**
  * 左侧菜单项改变事件
