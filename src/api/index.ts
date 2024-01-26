@@ -1,4 +1,9 @@
 import axios, {AxiosRequestHeaders} from "axios";
+import {StoreEnum} from "../models/StoreEnum";
+import {useRouter} from "vue-router";
+import { ElMessage } from "element-plus";
+
+const router = useRouter();
 
 // 创建 axios 实例
 const service = axios.create({
@@ -29,7 +34,6 @@ service.interceptors.request.use((config) => {
 });
 
 
-
 // 响应拦截：后端返回来的结果
 service.interceptors.response.use((res) => {
     // code 是后端的状态码
@@ -39,6 +43,15 @@ service.interceptors.response.use((res) => {
         return Promise.resolve(res.data);
     } else if (code === 401) {
         // 未登录或 Token 过期
+        // 移除用户配置信息
+        localStorage.removeItem(StoreEnum.USER);
+        // 跳转登录界面
+        router.push('login');
+        ElMessage({
+            message: '登录已过期，请重新登录',
+            duration: 2000,
+            type: 'error'
+        });
         return Promise.reject(res);
     } else {
         // 请求失败

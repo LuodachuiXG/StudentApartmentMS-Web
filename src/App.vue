@@ -4,8 +4,8 @@ import { StoreEnum } from './models/StoreEnum';
 import { User } from './models/User';
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, watch, ref } from 'vue';
-import { RoleEnum } from './models/RoleEnum'
-import { ElMessageBox } from 'element-plus';
+import { ElMessageBox, ElMessage } from 'element-plus';
+import { RoleEnum } from './models/RoleEnum';
 
 // 当前路由线路
 const route = useRoute();
@@ -21,6 +21,24 @@ const toggleDark = useToggle(isDark)
 // 用户实体类，如果用户已经登录，此处不为 null
 const user = ref<User | null>(null);
 
+// 左侧菜单项
+const asideMenus = [
+  {
+    name: '首页',
+    pathName: 'main',
+    role: null
+  },
+  // 只有管理员显示此菜单
+  {
+    name: '用户',
+    pathName: 'allUser',
+    role: RoleEnum.ADMIN
+  },
+];
+
+// 左侧菜单项当前选中项
+const asideMenuIndex = ref(0);
+
 /**
  * Vue 生命周期挂载
  */
@@ -33,8 +51,43 @@ onMounted(() => {
     if (_user != null) {
       user.value = JSON.parse(_user) as User;
     }
+
+    // 如果学生用网址的形式访问管理员页面，就跳转到主页
+    const currentViewRole = getRoleByPath(route.path);
+    if (currentViewRole !== null && currentViewRole !== user.value?.role) {
+      ElMessage({
+      message: `你没有权限访问 ${route.path}`,
+      duration: 2000,
+      type: 'error'
+    });
+      router.push('main');
+    }
   });
 });
+
+/**
+ * 根据左侧菜单项目的路径获取当前菜单的角色
+ * 用于防止学生使用网址的形式访问管理员权限的界面
+ * @param path 路径名
+ */
+const getRoleByPath = (pathName: string): RoleEnum | null => {
+  let role: RoleEnum | null = null;
+  asideMenus.forEach((menu) => {
+    if (`/${menu.pathName}` === pathName) {
+      role = menu.role;
+    }
+  });
+  return role;
+}
+
+/**
+ * 左侧菜单项改变事件
+ * @param i 菜单项索引
+ */
+const onAsideMenuChange = (i: number) => {
+  asideMenuIndex.value = i;
+  router.push(asideMenus[i].pathName);
+};
 
 /**
  * 注销帐号
@@ -88,7 +141,15 @@ const onLogout = () => {
       <el-container>
         <!-- 布局 Aside -->
         <el-aside v-if="user !== null" class="aside" width="250px">
-          123
+          <div class="button-container">
+            <div class="button-div" v-for="(menu, i) in asideMenus">
+              <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
+                :text="asideMenuIndex === i ? false : true"
+                v-if="menu.role === null || (menu.role !== null && menu.role === user.role)"
+                @click="onAsideMenuChange(i)">{{ menu.name }}</el-button>
+            </div>
+
+          </div>
         </el-aside>
         <!-- 布局 Main -->
         <el-main>
@@ -132,18 +193,27 @@ const onLogout = () => {
   border-right: 1px solid var(--el-border-color);
   height: 92vh;
   box-shadow: var(--el-box-shadow-light);
+  padding: 10px;
 }
 
-.aside .button-group {
+.aside .button-container {
   width: 100%;
-  margin: 0;
-  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  align-content: stretch;
 }
 
-.aside .button {
+.aside .button-container .button-div {
+  margin-top: 10px;
+}
+
+.aside .button-container .button-div:first-child {
+  margin-top: 0px;
+}
+
+.aside .button-container .button {
   width: 100%;
-  margin: 0;
-  padding: 0;
-  border-radius: 0px;
+  font-size: 1em;
 }
 </style>
