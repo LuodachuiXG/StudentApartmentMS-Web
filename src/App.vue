@@ -32,14 +32,14 @@ const asideMenus = [
   },
   // 只有管理员显示此菜单
   {
-    name: '所有用户',
+    name: '用户',
     routerName: RouterEnum.ALL_USER,
     icon: 'User',
     role: RoleEnum.ADMIN
   },
   {
-    name: '留言板',
-    routerName: RouterEnum.ALL_USER,
+    name: '留言',
+    routerName: RouterEnum.MSG_BOARD,
     icon: 'User',
     role: null
   },
@@ -129,7 +129,7 @@ const onLogout = () => {
               <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
                 :text="asideMenuIndex === i ? false : true" :icon="menu.icon"
                 v-if="menu.role === null || (menu.role !== null && menu.role === user.role)"
-                @click="onAsideMenuChange(i)">{{ menu.name }}</el-button>
+                @click="onAsideMenuChange(i)" auto-insert-space>{{ menu.name }}</el-button>
             </div>
 
           </div>

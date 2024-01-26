@@ -38,7 +38,7 @@ const router = createRouter({
         {
             path: `/${RouterEnum.MSG_BOARD}`,
             name: RouterEnum.MSG_BOARD,
-            component: () => import('../views/MainView.vue')
+            component: () => import('../views/MessageBoardView.vue')
         },
     ]
 });
