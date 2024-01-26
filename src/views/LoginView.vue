@@ -6,6 +6,7 @@ import { LoginModeEnum } from "../models/LoginModeEnum.ts";
 import { StoreEnum } from "../models/StoreEnum.ts";
 import { useRouter } from "vue-router";
 import { formatDate } from "../utils/MyUtils";
+import { RouterEnum } from "../router/RouterEnum";
 
 
 // 工号（学号）
@@ -52,7 +53,7 @@ const onLogin = () => {
     // 登录成功，将用户信息存储
     localStorage.setItem(StoreEnum.USER, JSON.stringify(res.data));
     // 跳转主页
-    router.push('main');
+    router.push(RouterEnum.MAIN);
   }).catch((err) => {
     console.log(err);
     ElMessage({
@@ -89,7 +90,7 @@ const onRegister = () => {
 
   register(rName.value, rId.value, rPwd.value, rPhone.value,
     rGender.value === '男' ? 'male' : 'female',
-    formatDate(new Date(rBirth.value))).then((res) => {
+    formatDate(new Date(rBirth.value))).then(() => {
       // 注册成功，清空注册信息
       clearRegisterValue();
       // 跳转登录页
@@ -100,7 +101,6 @@ const onRegister = () => {
         type: 'success'
       });
     }).catch((err) => {
-      console.log(err);
       ElMessage({
         message: err.errMsg,
         duration: 2000,

@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { onMounted, watch, ref } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import { RoleEnum } from './models/RoleEnum';
+import { RouterEnum } from './router/RouterEnum';
 
 // 当前路由线路
 const route = useRoute();
@@ -25,16 +26,22 @@ const user = ref<User | null>(null);
 const asideMenus = [
   {
     name: '首页',
-    pathName: 'main',
+    routerName: RouterEnum.MAIN,
     icon: 'House',
     role: null
   },
   // 只有管理员显示此菜单
   {
-    name: '用户',
-    pathName: 'allUser',
+    name: '所有用户',
+    routerName: RouterEnum.ALL_USER,
     icon: 'User',
     role: RoleEnum.ADMIN
+  },
+  {
+    name: '留言板',
+    routerName: RouterEnum.ALL_USER,
+    icon: 'User',
+    role: null
   },
 ];
 
@@ -62,7 +69,7 @@ onMounted(() => {
  */
 const onAsideMenuChange = (i: number) => {
   asideMenuIndex.value = i;
-  router.push(asideMenus[i].pathName);
+  router.push(asideMenus[i].routerName);
 };
 
 /**
@@ -80,7 +87,7 @@ const onLogout = () => {
   ).then(() => {
     localStorage.removeItem(StoreEnum.USER);
     user.value = null;
-    router.push('login');
+    router.push(RouterEnum.LOGIN);
   })
 }
 </script>

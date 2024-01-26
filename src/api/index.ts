@@ -3,6 +3,7 @@ import { StoreEnum } from "../models/StoreEnum";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { User } from "../models/User";
+import { RouterEnum } from "../router/RouterEnum";
 
 const router = useRouter();
 
@@ -48,7 +49,7 @@ service.interceptors.response.use((res) => {
         // 移除用户配置信息
         localStorage.removeItem(StoreEnum.USER);
         // 跳转登录界面
-        router.push('login');
+        router.push(RouterEnum.LOGIN);
         ElMessage({
             message: '登录已过期，请重新登录',
             duration: 2000,

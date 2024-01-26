@@ -3,6 +3,7 @@ import { StoreEnum } from '../models/StoreEnum';
 import { ElMessage } from "element-plus";
 import { RoleEnum } from '../models/RoleEnum';
 import { User } from '../models/User';
+import { RouterEnum } from './RouterEnum';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,21 +19,26 @@ const router = createRouter({
         },
         {
             path: '/',
-            name: 'login',
+            name: RouterEnum.LOGIN,
             component: () => import('../views/LoginView.vue')
         },
         {
-            path: '/main',
-            name: 'main',
+            path: `/${RouterEnum.MAIN}`,
+            name: RouterEnum.MAIN,
             component: () => import('../views/MainView.vue')
         },
         {
-            path: '/allUser',
-            name: 'allUser',
+            path: `/${RouterEnum.ALL_USER}`,
+            name: RouterEnum.ALL_USER,
             component: () => import('../views/AllUserView.vue'),
             meta: {
                 role: RoleEnum.ADMIN
             }
+        },
+        {
+            path: `/${RouterEnum.MSG_BOARD}`,
+            name: RouterEnum.MSG_BOARD,
+            component: () => import('../views/MainView.vue')
         },
     ]
 });
@@ -47,7 +53,7 @@ router.beforeEach(async (to, _from) => {
             type: 'error'
         });
         console.log('登录已过期，请重新登录')
-        return { name: 'login' }
+        return { name: RouterEnum.LOGIN }
     }
 
     const viewRole: RoleEnum | undefined = to.meta.role as RoleEnum;
@@ -55,12 +61,12 @@ router.beforeEach(async (to, _from) => {
     if (viewRole !== undefined) {
         const user = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
         if (viewRole != user.role) {
-            router.push('main');
             ElMessage({
                 message: `你没有权限访问 ${to.path}`,
                 duration: 2000,
                 type: 'error'
             });
+            return { name: RouterEnum.MAIN }
         }
     }
 })
