@@ -146,40 +146,44 @@ const onTableColDeleteClick = (userId: number, name: string) => {
 <template>
   <div class="container">
     <div class="button-group">
-      <el-button-group>
-        <el-button>添加学生</el-button>
-        <el-button>删除</el-button>
-      </el-button-group>
+      <el-button plain type="primary">添加学生</el-button>
+      <el-button plain type="primary">查找用户</el-button>
+      <el-button type="danger" plain>删除</el-button>
+
     </div>
     <div class="table">
       <!-- 表格，显示用户 -->
-      <el-scrollbar>
-        <el-table class="table" :data="pages?.data" border height="78vh"
-          :default-sort="{ prop: 'birth', order: 'descending' }">
-          <el-table-column type="selection" width="55" />
-          <el-table-column fixed prop="id" label="学号" width="120" />
-          <el-table-column fixed prop="name" label="姓名" width="90" />
-          <el-table-column prop="role" label="身份" width="80" :formatter="onTableRoleFormat" :filters="[
-            { text: '管理员', value: RoleEnum.ADMIN },
-            { text: '学生', value: RoleEnum.STUDENT }
-          ]" :filter-method="onTableRoleFilterHandler" />
-          <el-table-column prop="phone" label="电话" width="120" />
-          <el-table-column prop="gender" label="性别" width="80" :formatter="onTableGenderFormat" :filters="[
-            { text: '男', value: GenderEnum.MALE },
-            { text: '女', value: GenderEnum.FEMALE }
-          ]" :filter-method="onTableGenderFilterHandler" />
-          <el-table-column prop="birth" label="出生日期" width="120" sortable />
-          <el-table-column prop="lastLogin" label="最后登录" width="220" />
-          <el-table-column fixed="right" label="操作" width="180" style="">
-            <template #default="scope">
+      <el-table class="table" :data="pages?.data" border height="72vh"
+        :default-sort="{ prop: 'birth', order: 'descending' }">
+        <el-table-column type="selection" width="55" />
+        <el-table-column fixed prop="id" label="工号（学号）" width="120" />
+        <el-table-column fixed prop="name" label="姓名" width="90" />
+        <el-table-column prop="role" label="身份" width="80" :formatter="onTableRoleFormat" :filters="[
+          { text: '管理员', value: RoleEnum.ADMIN },
+          { text: '学生', value: RoleEnum.STUDENT }
+        ]" :filter-method="onTableRoleFilterHandler" />
+        <el-table-column prop="phone" label="电话" width="120" />
+        <el-table-column prop="gender" label="性别" width="80" :formatter="onTableGenderFormat" :filters="[
+          { text: '男', value: GenderEnum.MALE },
+          { text: '女', value: GenderEnum.FEMALE }
+        ]" :filter-method="onTableGenderFilterHandler" />
+        <el-table-column prop="birth" label="出生日期" width="120" sortable />
+        <el-table-column prop="lastLogin" label="最后登录" width="220" />
+        <el-table-column fixed="right" label="操作" width="180" style="">
+          <template #default="scope">
+            <!-- 管理员只能修改学生信息，不能修改管理员信息 -->
+            <div v-if="scope.row.role === RoleEnum.STUDENT">
               <el-button link type="primary" size="small">编辑</el-button>
+              <el-button link type="primary" size="small">宿舍信息</el-button>
               <el-button link type="danger" size="small"
                 @click="onTableColDeleteClick(scope.row.userId, scope.row.name)">删除</el-button>
-              <el-button v-if="scope.row.role === RoleEnum.STUDENT" link type="primary" size="small">宿舍信息</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-scrollbar>
+            </div>
+            <div v-else>
+              <el-button link type="primary" size="small">查看</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
     </div>
 
     <!-- 页码组件 -->
@@ -196,6 +200,12 @@ const onTableColDeleteClick = (userId: number, name: string) => {
   height: 100%;
 }
 
+.search-group {
+  height: 40px;
+  line-height: 40px;
+}
+
+
 .button-group {
   margin-bottom: 10px;
 }
@@ -205,7 +215,7 @@ const onTableColDeleteClick = (userId: number, name: string) => {
 }
 
 .pagination-div {
-  margin-top: 10px;
+  margin-top: 9px;
 }
 
 .pagination {

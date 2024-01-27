@@ -4,6 +4,12 @@
     font-family: Mi;
 }
 
+html,
+body,
+#app {
+    height: 100%;
+}
+
 @font-face {
     font-family: Mi;
     src: url('./assets/fonts/mi.ttf');

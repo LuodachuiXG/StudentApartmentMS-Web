@@ -102,14 +102,14 @@ const onLogout = () => {
 </script>
 
 <template>
-  <div class="main-layout">
+  <div class="main-box">
     <!-- 布局容器 -->
-    <el-container>
+    <el-container class="container" direction="vertical">
       <!-- 布局 Header -->
       <el-header class="head">
         <el-row>
           <el-col :span="18">
-            <p class="title">SAMS 学生公寓管理系统</p>
+            <p class="title">学生公寓管理系统</p>
           </el-col>
           <el-col :span="6">
             <div class="head-right">
@@ -153,7 +153,8 @@ const onLogout = () => {
 </template>
 
 <style scoped lang="scss">
-.main-layout {
+.main-box,
+.container {
   height: 100%;
 }
 
@@ -183,7 +184,6 @@ const onLogout = () => {
 
 .aside {
   border-right: 1px solid var(--el-border-color);
-  height: 92vh;
   box-shadow: var(--el-box-shadow-light);
   padding: 10px;
 }
