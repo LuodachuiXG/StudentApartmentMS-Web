@@ -4,6 +4,9 @@ import { userByPage } from '../api/userApi';
 import { Pager } from '../models/Pager';
 import { User } from '../models/User';
 import { ElMessage } from 'element-plus';
+import { RoleEnum } from '../models/RoleEnum';
+import type { TableColumnCtx } from 'element-plus'
+import { GenderEnum } from '../models/GenderEnum';
 
 // 存储用户分页数据
 const pages = ref<Pager<User> | null>(null);
@@ -75,33 +78,70 @@ const onTableSizeChangChange = (value: number) => {
   // 刷新表格数据
   refreshTableData();
 }
+
+/**
+ * 表格用户性别筛选过滤事件
+ */
+const onTableGenderFilterHandler = (
+  value: string,
+  row: User
+) => {
+  return row.gender === value;
+}
+
+/**
+ * 表格用户身份筛选过滤事件
+ */
+const onTableRoleFilterHandler = (
+  value: string,
+  row: User
+) => {
+  return row.role === value;
+}
 </script>
 
 <template>
   <div class="container">
+    <div class="button-group">
+      <el-button-group>
+        <el-button>删除</el-button>
+        <el-button>编辑</el-button>
+        <el-button>编辑</el-button>
+      </el-button-group>
+    </div>
     <div class="table">
       <!-- 表格，显示用户 -->
-      <el-table class="table" :data="pages?.data" border>
-        <el-table-column fixed prop="id" label="学号" width="100" />
-        <el-table-column fixed prop="name" label="姓名" width="90" />
-        <el-table-column prop="role" label="身份" width="80" :formatter="onTableRoleFormat" />
-        <el-table-column prop="phone" label="电话" width="120" />
-        <el-table-column prop="gender" label="性别" width="80" :formatter="onTableGenderFormat" />
-        <el-table-column prop="birth" label="出生日期" width="120" />
-        <el-table-column prop="lastLogin" label="最后登录" width="220" />
-        <el-table-column fixed="right" label="操作" width="150">
-          <template #default>
-            <el-button link type="primary" size="small">编辑</el-button>
-            <el-button link type="primary" size="small">宿舍</el-button>
-            <el-button link type="danger" size="small">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <el-scrollbar>
+        <el-table class="table" :data="pages?.data" border height="78vh"
+          :default-sort="{ prop: 'birth', order: 'descending' }">
+          <el-table-column type="selection" width="55" />
+          <el-table-column fixed prop="id" label="学号" width="120" />
+          <el-table-column fixed prop="name" label="姓名" width="90" />
+          <el-table-column prop="role" label="身份" width="80" :formatter="onTableRoleFormat" :filters="[
+            { text: '管理员', value: RoleEnum.ADMIN },
+            { text: '学生', value: RoleEnum.STUDENT }
+          ]" :filter-method="onTableRoleFilterHandler" />
+          <el-table-column prop="phone" label="电话" width="120" />
+          <el-table-column prop="gender" label="性别" width="80" :formatter="onTableGenderFormat" :filters="[
+            { text: '男', value: GenderEnum.MALE },
+            { text: '女', value: GenderEnum.FEMALE }
+          ]" :filter-method="onTableGenderFilterHandler" />
+          <el-table-column prop="birth" label="出生日期" width="120" sortable />
+          <el-table-column prop="lastLogin" label="最后登录" width="220" />
+          <el-table-column fixed="right" label="操作" width="180" style="">
+            <template #default="scope">
+              <el-button link type="primary" size="small">编辑</el-button>
+              <el-button link type="danger" size="small">删除</el-button>
+              <el-button v-if="scope.row.role === RoleEnum.STUDENT" link type="primary" size="small">宿舍信息</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-scrollbar>
     </div>
 
     <!-- 页码组件 -->
     <div class="pagination-div">
-      <el-pagination class="pagination" :page-size="pages?.size" layout="prev, pager, next, sizes"
+      <el-pagination class="pagination" :page-size="pages?.size" layout="total, prev, pager, next, sizes"
         :total="pages?.totalData" @current-change="onTableCurrentPageChange" @size-change="onTableSizeChangChange" />
     </div>
   </div>
@@ -111,6 +151,10 @@ const onTableSizeChangChange = (value: number) => {
 .container {
   width: 100%;
   height: 100%;
+}
+
+.button-group {
+  margin-bottom: 10px;
 }
 
 .table {
