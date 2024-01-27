@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { userByPage } from '../api/userApi';
+import { userByPage, deleteUsers } from '../api/userApi';
 import { Pager } from '../models/Pager';
 import { User } from '../models/User';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { RoleEnum } from '../models/RoleEnum';
-import type { TableColumnCtx } from 'element-plus'
 import { GenderEnum } from '../models/GenderEnum';
 
 // 存储用户分页数据
@@ -98,15 +97,58 @@ const onTableRoleFilterHandler = (
 ) => {
   return row.role === value;
 }
+
+/**
+ * 删除用户事件
+ * @param ids 用户 ID 集合
+ * @param names 用户姓名集合
+ */
+const onDeleteUser = (ids: Array<number>, names: Array<string>) => {
+  ElMessageBox.confirm(
+    `确定要删除 [${names}] ${ids.length} 个用户吗？此操作不可逆！`,
+    '温馨提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    deleteUsers(ids).then(() => {
+      // 删除成功
+      ElMessage({
+        message: `删除 ${ids.length} 个用户成功`,
+        duration: 2000,
+        type: 'success'
+      });
+      // 刷新用户
+      refreshTableData();
+    }).catch((err) => {
+      // 删除用户失败
+      ElMessage({
+        message: err.errMsg,
+        duration: 2000,
+        type: 'error'
+      });
+    });
+  });
+}
+
+/**
+ * 表格列删除按钮点击事件
+ * @param userId 工号（学号）
+ * @param name 用户姓名
+ */
+const onTableColDeleteClick = (userId: number, name: string) => {
+  onDeleteUser(Array.of(userId), Array.of(name));
+}
 </script>
 
 <template>
   <div class="container">
     <div class="button-group">
       <el-button-group>
+        <el-button>添加学生</el-button>
         <el-button>删除</el-button>
-        <el-button>编辑</el-button>
-        <el-button>编辑</el-button>
       </el-button-group>
     </div>
     <div class="table">
@@ -131,7 +173,8 @@ const onTableRoleFilterHandler = (
           <el-table-column fixed="right" label="操作" width="180" style="">
             <template #default="scope">
               <el-button link type="primary" size="small">编辑</el-button>
-              <el-button link type="danger" size="small">删除</el-button>
+              <el-button link type="danger" size="small"
+                @click="onTableColDeleteClick(scope.row.userId, scope.row.name)">删除</el-button>
               <el-button v-if="scope.row.role === RoleEnum.STUDENT" link type="primary" size="small">宿舍信息</el-button>
             </template>
           </el-table-column>

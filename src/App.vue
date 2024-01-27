@@ -17,7 +17,7 @@ const router = useRouter();
 const isDark = useDark();
 
 // 切换暗色模式
-const toggleDark = useToggle(isDark)
+const toggleDark = useToggle(isDark);
 
 // 用户实体类，如果用户已经登录，此处不为 null
 const user = ref<User | null>(null);
@@ -68,7 +68,7 @@ onMounted(() => {
       if (route.path === `/${menu.routerName}`) {
         asideMenuIndex.value = index;
       }
-    })
+    });
   });
 });
 
@@ -97,7 +97,7 @@ const onLogout = () => {
     localStorage.removeItem(StoreEnum.USER);
     user.value = null;
     router.push(RouterEnum.LOGIN);
-  })
+  });
 }
 </script>
 

@@ -13,7 +13,7 @@ export function login(id: string, password: string) {
             id: id,
             password: password
         }
-    })
+    });
 }
 
 
@@ -41,7 +41,7 @@ export function register(name: string, id: string, password: string,
         url: '/user',
         method: 'POST',
         data: data
-    })
+    });
 }
 
 /**
@@ -51,7 +51,7 @@ export function allUsers() {
     return service({
         url: '/user',
         method: 'GET'
-    })
+    });
 }
 
 /**
@@ -63,6 +63,18 @@ export function userByPage(page: number, size: number) {
     return service({
         url: `/user/${page}/${size}`,
         method: 'GET'
-    })
+    });
+}
+
+/**
+ * 分页获取用户（该接口只有管理员可以调用）
+ * @param ids 用户 ID 集合
+ */
+export function deleteUsers(ids: Array<number>) {
+    return service({
+        url: '/user',
+        method: 'DELETE',
+        data: ids
+    });
 }
 
