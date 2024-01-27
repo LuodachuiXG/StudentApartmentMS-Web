@@ -7,6 +7,7 @@ import { StoreEnum } from "../models/StoreEnum.ts";
 import { useRouter } from "vue-router";
 import { formatDate } from "../utils/MyUtils";
 import { RouterEnum } from "../router/RouterEnum";
+import { GenderEnum } from "../models/GenderEnum";
 
 
 // 工号（学号）
@@ -89,7 +90,7 @@ const onRegister = () => {
   }
 
   register(rName.value, rId.value, rPwd.value, rPhone.value,
-    rGender.value === '男' ? 'male' : 'female',
+    rGender.value === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
     formatDate(new Date(rBirth.value))).then(() => {
       // 注册成功，清空注册信息
       clearRegisterValue();
