@@ -37,7 +37,6 @@ export function register(name: string, id: string, password: string,
         gender: gender,
         birth: birth
     };
-    console.log(data);
     return service({
         url: '/user',
         method: 'POST',
@@ -54,3 +53,16 @@ export function allUsers() {
         method: 'GET'
     })
 }
+
+/**
+ * 分页获取用户（该接口只有管理员可以调用）
+ * @param page 当前页
+ * @param size 每页大小
+ */
+export function userByPage(page: number, size: number) {
+    return service({
+        url: `/user/${page}/${size}`,
+        method: 'GET'
+    })
+}
+

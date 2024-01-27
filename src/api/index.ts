@@ -12,7 +12,7 @@ const service = axios.create({
     baseURL: "http://127.0.0.1:8099",
     timeout: 5000,
     headers: {
-        "Content-type": "application/json;charset=utf-8",
+        "Content-type": "application/json",
         "Access-Control-Allow-Origin": "*"
     },
     withCredentials: true
@@ -43,6 +43,9 @@ service.interceptors.response.use((res) => {
     return Promise.resolve(res.data);
 }, (err) => {
     // code 是后端的状态码
+    if (err.response == undefined) {
+        return Promise.reject(err.message);
+    }
     const code: number = err.response.data.code;
     if (code === 401) {
         // 未登录或 Token 过期

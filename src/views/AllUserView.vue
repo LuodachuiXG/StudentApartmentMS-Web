@@ -1,12 +1,128 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { userByPage } from '../api/userApi';
+import { Pager } from '../models/Pager';
+import { User } from '../models/User';
+import { ElMessage } from 'element-plus';
+
+// 存储用户分页数据
+const pages = ref<Pager<User> | null>(null);
+
+// 分页器每页条数
+const pageSize = ref(10);
+
+// 分页器当前页数
+const currentPage = ref(1);
+
+/**
+ * Vue 生命周期挂载
+ */
+onMounted(() => {
+  refreshTableData();
+});
+
+const refreshTableData = () => {
+  // 获取用户
+  userByPage(currentPage.value, pageSize.value).then((res) => {
+    // 请求成功
+    pages.value = res.data;
+  }).catch((err) => {
+    ElMessage({
+      message: err.errMsg,
+      duration: 2000,
+      type: 'error'
+    });
+  });
+}
+
+
+/**
+ * 格式化表格身份字段，格式化为 '管理员' 或 '学生'
+ */
+const onTableRoleFormat = (_row: number, _column: number, cellValue: string, _index: number) => {
+  if (cellValue === 'ADMIN') {
+    return '管理员';
+  } else {
+    return '学生';
+  }
+}
+
+/**
+ * 格式化表格性别字段，格式化为 '男' 或 '女'
+ */
+const onTableGenderFormat = (_row: number, _column: number, cellValue: string, _index: number) => {
+  if (cellValue === 'MALE') {
+    return '男';
+  } else {
+    return '女';
+  }
+}
+
+/**
+ * 表格当前页数改变事件
+ */
+const onTableCurrentPageChange = (value: number) => {
+  currentPage.value = value;
+  // 刷新表格数据
+  refreshTableData();
+}
+
+/**
+ * 表格每页条数改变事件
+ */
+const onTableSizeChangChange = (value: number) => {
+  pageSize.value = value;
+  // 刷新表格数据
+  refreshTableData();
+}
 </script>
 
 <template>
-  <el-text class="title">所有用户</el-text><br>
+  <div class="container">
+    <div class="table">
+      <!-- 表格，显示用户 -->
+      <el-table class="table" :data="pages?.data" border>
+        <el-table-column fixed prop="id" label="学号" width="100" />
+        <el-table-column fixed prop="name" label="姓名" width="90" />
+        <el-table-column prop="role" label="身份" width="80" :formatter="onTableRoleFormat" />
+        <el-table-column prop="phone" label="电话" width="120" />
+        <el-table-column prop="gender" label="性别" width="80" :formatter="onTableGenderFormat" />
+        <el-table-column prop="birth" label="出生日期" width="120" />
+        <el-table-column prop="lastLogin" label="最后登录" width="220" />
+        <el-table-column fixed="right" label="操作" width="150">
+          <template #default>
+            <el-button link type="primary" size="small">编辑</el-button>
+            <el-button link type="primary" size="small">宿舍</el-button>
+            <el-button link type="danger" size="small">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- 页码组件 -->
+    <div class="pagination-div">
+      <el-pagination class="pagination" :page-size="pages?.size" layout="prev, pager, next, sizes"
+        :total="pages?.totalData" @current-change="onTableCurrentPageChange" @size-change="onTableSizeChangChange" />
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.title {
-  font-size: 2em;
+.container {
+  width: 100%;
+  height: 100%;
+}
+
+.table {
+  width: 100%;
+}
+
+.pagination-div {
+  margin-top: 10px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
 }
 </style>

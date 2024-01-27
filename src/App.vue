@@ -22,6 +22,9 @@ const toggleDark = useToggle(isDark)
 // 用户实体类，如果用户已经登录，此处不为 null
 const user = ref<User | null>(null);
 
+
+// 左侧菜单项当前选中项
+const asideMenuIndex = ref(0);
 // 左侧菜单项
 const asideMenus = [
   {
@@ -45,11 +48,9 @@ const asideMenus = [
   },
 ];
 
-// 左侧菜单项当前选中项
-const asideMenuIndex = ref(0);
-
 /**
  * Vue 生命周期挂载
+ * 此方法会在当前页刷新的情况下触发
  */
 onMounted(() => {
   // 监听路由变化（界面切换）
@@ -60,6 +61,14 @@ onMounted(() => {
     if (_user != null) {
       user.value = JSON.parse(_user) as User;
     }
+
+    // 把当前页与左侧菜单项的页面地址对比，确定左侧菜单当前选项
+    // 这里这样做，可以防止直接跳转网址或者刷新网页导致左侧菜单显示异常
+    asideMenus.forEach((menu, index) => {
+      if (route.path === `/${menu.routerName}`) {
+        asideMenuIndex.value = index;
+      }
+    })
   });
 });
 
@@ -68,7 +77,7 @@ onMounted(() => {
  * @param i 菜单项索引
  */
 const onAsideMenuChange = (i: number) => {
-  asideMenuIndex.value = i;
+  // 跳转页面
   router.push(asideMenus[i].routerName);
 };
 
@@ -128,14 +137,14 @@ const onLogout = () => {
             <div class="button-div" v-for="(menu, i) in asideMenus">
               <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
                 :text="asideMenuIndex === i ? false : true" :icon="menu.icon"
-                v-if="menu.role === null || (menu.role !== null && menu.role === user.role)"
-                @click="onAsideMenuChange(i)" auto-insert-space>{{ menu.name }}</el-button>
+                v-if="menu.role === null || (menu.role !== null && menu.role === user.role)" @click="onAsideMenuChange(i)"
+                auto-insert-space>{{ menu.name }}</el-button>
             </div>
 
           </div>
         </el-aside>
         <!-- 布局 Main -->
-        <el-main>
+        <el-main class="main">
           <router-view></router-view>
         </el-main>
       </el-container>
@@ -198,5 +207,9 @@ const onLogout = () => {
 .aside .button-container .button {
   width: 100%;
   font-size: 1em;
+}
+
+.main {
+  padding: 10px;
 }
 </style>
