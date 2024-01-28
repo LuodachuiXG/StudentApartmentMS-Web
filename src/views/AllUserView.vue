@@ -281,7 +281,8 @@ const clearStudentValue = () => {
  */
 const onDialogStudentClick = () => {
   if (studentForm.name.length === 0 || studentForm.id.length === 0 ||
-    studentForm.phone.length === 0 || studentForm.birth.length === 0) {
+    studentForm.phone.length === 0 || studentForm.birth === null ||
+    studentForm.birth.length === 0) {
     ElMessage({
       message: '请将信息填写完整',
       duration: 2000,

@@ -69,9 +69,9 @@ const onLogin = () => {
  * 注册用户
  */
 const onRegister = () => {
-  if (rName.value.length === 0 || rId.value.length === 0 ||
-    rPwd.value.length === 0 || rPwdAgain.value.length === 0 ||
-    rPhone.value.length === 0 || rBirth.value.length === 0) {
+  if (rName.value.length === 0 || rId.value.length === 0 || rPwd.value.length === 0 ||
+    rPwdAgain.value.length === 0 || rPhone.value.length === 0 ||
+    rBirth.value === null || rBirth.value.length === 0) {
     ElMessage({
       message: '请将信息填写完整',
       duration: 2000,
@@ -145,29 +145,29 @@ const clearRegisterValue = () => {
 
         <!-- 注册 -->
         <div v-else-if="currentMode === LoginModeEnum.REGISTER">
-          <el-form class="register-form" label-position="left" label-width="75px">
-            <el-form-item label="姓名">
+          <el-form class="register-form" label-position="left" label-width="85px">
+            <el-form-item label="姓名" required>
               <el-input v-model="rName" placeholder="你的姓名"></el-input>
             </el-form-item>
-            <el-form-item label="工号">
+            <el-form-item label="工号" required>
               <el-input v-model="rId" placeholder="工号"></el-input>
             </el-form-item>
-            <el-form-item label="密码">
+            <el-form-item label="密码" required>
               <el-input v-model="rPwd" show-password placeholder="密码" type="password"></el-input>
             </el-form-item>
-            <el-form-item label="重复密码">
+            <el-form-item label="重复密码" required>
               <el-input v-model="rPwdAgain" show-password placeholder="重复密码" type="password"></el-input>
             </el-form-item>
-            <el-form-item label="手机号">
+            <el-form-item label="手机号" required>
               <el-input v-model="rPhone" placeholder="手机号"></el-input>
             </el-form-item>
-            <el-form-item label="性别">
+            <el-form-item label="性别" required>
               <el-radio-group v-model="rGender">
                 <el-radio label="男" />
                 <el-radio label="女" />
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="出生日期">
+            <el-form-item label="出生日期" required>
               <el-date-picker v-model="rBirth" placeholder="选择出生日期" style="width: 100%;" />
             </el-form-item>
           </el-form>
