@@ -91,6 +91,21 @@ export function userByPage(page: number, size: number) {
     });
 }
 
+
+/**
+ * 分页和关键词获取用户信息
+ * 关键词：工号（学号）、姓名、电话
+ * @param key 查询的关键词
+ * @param page 当前页数
+ * @param size 每页大小
+ */
+export function userByKeyAndPage(key: string, page: number, size: number) {
+    return service({
+        url: `/user/${key}/${page}/${size}`,
+        method: 'GET'
+    });
+}
+
 /**
  * 分页获取用户（该接口只有管理员可以调用）
  * @param ids 用户 ID 集合

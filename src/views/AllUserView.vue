@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from 'vue';
-import { userByPage, deleteUsers, addStudent } from '../api/userApi';
+import { userByPage, deleteUsers, addStudent, userByKeyAndPage } from '../api/userApi';
 import { Pager } from '../models/Pager';
 import { User } from '../models/User';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -23,6 +23,15 @@ const selectedUsers = ref<User[]>();
 // 是否显示添加学生对话框
 const dialogAddStudentVisible = ref(false);
 
+// 是否显示聚合查找对话框
+const dialogSearchVisible = ref(false);
+
+// 标记当前是否是聚合查找模式
+const isSearchMode = ref(false);
+
+// 标记当前聚合查找的关键词
+const searchKey = ref('');
+
 // 添加学生表单
 const addStudentForm = reactive({
   name: '',
@@ -32,6 +41,11 @@ const addStudentForm = reactive({
   birth: ''
 });
 
+// 聚合查找表单
+const searchForm = reactive({
+  key: ''
+});
+
 /**
  * Vue 生命周期挂载
  */
@@ -39,18 +53,38 @@ onMounted(() => {
   refreshTableData();
 });
 
+/**
+ * 刷新表格用户数据
+ */
 const refreshTableData = () => {
-  // 获取用户
-  userByPage(currentPage.value, pageSize.value).then((res) => {
-    // 请求成功
-    pages.value = res.data;
-  }).catch((err) => {
-    ElMessage({
-      message: err.errMsg,
-      duration: 2000,
-      type: 'error'
+  // 判断当前是否是聚合查找模式
+  if (isSearchMode.value) {
+    // 当前是聚合查找模式，刷新根据关键词查找用户的结果
+    userByKeyAndPage(searchForm.key, currentPage.value, pageSize.value).then((res) => {
+      // 查找成功，显示查找结果
+      pages.value = res.data;
+    }).catch((err) => {
+      // 查找失败
+      ElMessage({
+        message: err.errMsg,
+        duration: 2000,
+        type: 'error'
+      });
     });
-  });
+  } else {
+    // 当前是普通显示用户模式
+    // 获取用户
+    userByPage(currentPage.value, pageSize.value).then((res) => {
+      // 请求成功
+      pages.value = res.data;
+    }).catch((err) => {
+      ElMessage({
+        message: err.errMsg,
+        duration: 2000,
+        type: 'error'
+      });
+    });
+  }
 }
 
 
@@ -227,13 +261,59 @@ const onDialogAddStudentClick = () => {
       });
     });
 }
+
+
+/**
+ * 聚合查找对话框查找按钮点击事件
+ */
+const onDialogSearchClick = () => {
+  if (searchForm.key.length === 0) {
+    ElMessage({
+      message: '请将信息填写完整',
+      duration: 2000,
+      type: 'error'
+    });
+    return;
+  }
+  // 设置当前聚合查找的关键字
+  searchKey.value = searchForm.key;
+  // 设置当前是聚合查找模式
+  isSearchMode.value = true;
+  // 设置当前页为第一页
+  currentPage.value = 1;
+  // 刷新数据
+  refreshTableData();
+  // 关闭聚合查找对话框
+  dialogSearchVisible.value = false;
+}
+
+
+/**
+ * 聚合查找对话框重置搜索按钮点击事件
+ */
+const onDialogSearchResettingClick = () => {
+  // 清除当前聚合查找的关键字
+  searchKey.value = '';
+  // 设置当前不是聚合搜索模式
+  isSearchMode.value = false;
+  // 清空表单
+  searchForm.key = '';
+  // 设置当前页为第一页
+  currentPage.value = 1;
+  // 刷新数据
+  refreshTableData();
+  // 关闭聚合查找对话框
+  dialogSearchVisible.value = false;
+}
 </script>
 
 <template>
   <div class="container">
     <div class="button-group">
       <el-button plain type="primary" @click="dialogAddStudentVisible = true">添加学生</el-button>
-      <el-button plain type="primary">查找用户</el-button>
+      <el-button :plain="!isSearchMode" :type="isSearchMode ? 'success' : 'primary'" @click="dialogSearchVisible = true">
+        {{ isSearchMode ? '聚合查找：' +  searchKey : '聚合查找' }}
+      </el-button>
       <el-button type="danger" plain @click="onToolBarDeleteClick"
         :disabled="selectedUsers == null || selectedUsers.length == 0">删除</el-button>
 
@@ -275,7 +355,7 @@ const onDialogAddStudentClick = () => {
 
     <!-- 页码组件 -->
     <div class="pagination-div">
-      <el-pagination class="pagination" :page-size="pages?.size" layout="total, prev, pager, next, sizes"
+      <el-pagination class="pagination" :page-size="pages?.size" layout="total, prev, pager, next, sizes" :current-page="currentPage"
         :total="pages?.totalData" @current-change="onTableCurrentPageChange" @size-change="onTableSizeChangChange" />
     </div>
 
@@ -307,7 +387,7 @@ const onDialogAddStudentClick = () => {
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="clearAddStudentValue" type="warning">重置</el-button>
+          <el-button @click="clearAddStudentValue" type="warning" plain>重置</el-button>
           <el-button @click="dialogAddStudentVisible = false">取消</el-button>
           <el-button type="primary" @click="onDialogAddStudentClick">添加</el-button>
         </span>
@@ -315,7 +395,21 @@ const onDialogAddStudentClick = () => {
     </el-dialog>
 
 
-
+    <!-- 聚合查找对话框 -->
+    <el-dialog v-model="dialogSearchVisible" title="聚合查找" draggable>
+      <el-form class="register-form" :model="searchForm" label-position="left" label-width="75px">
+        <el-form-item label="关键词">
+          <el-input v-model="searchForm.key" placeholder="工号（学号）、姓名、电话"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="onDialogSearchResettingClick" type="warning" plain>重置搜索</el-button>
+          <el-button @click="dialogSearchVisible = false">取消</el-button>
+          <el-button type="primary" @click="onDialogSearchClick">查找</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
   </div>
 </template>
