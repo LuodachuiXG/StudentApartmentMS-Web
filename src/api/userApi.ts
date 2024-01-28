@@ -118,3 +118,52 @@ export function deleteUsers(ids: Array<number>) {
     });
 }
 
+/**
+ * 修改用户
+ * 管理员不能修改其他管理员信息，但可以修改学生信息
+ * 学生只能修改自己的信息
+ * @param name 姓名
+ * @param id 工号（学号）
+ * @param password 密码（为空不修改）
+ * @param phone 手机号
+ * @param gender 性别
+ * @param birth 出生日期
+ * @returns 
+ */
+export function updateUser(userId: number, name: string,
+    id: string, password: string, phone: string,
+    gender: string, birth: string) {
+    const data = {
+        userId: userId,
+        name: name,
+        id: id,
+        password: password,
+        phone: phone,
+        gender: gender,
+        birth: birth
+    };
+    return service({
+        url: '/user',
+        method: 'PUT',
+        data: data
+    });
+}
+
+/**
+ * 修改密码
+ * 此接口只能修改密码的用户本人调用
+ * @param oldPwd 旧密码
+ * @param newPwd 新密码
+ * @returns 
+ */
+export function updateUserPassword(oldPwd: string, newPwd: string) {
+    return service({
+        url: '/user/password',
+        method: 'PUT',
+        data: {
+            oldPwd: oldPwd,
+            newPwd: newPwd
+        }
+    });
+}
+
