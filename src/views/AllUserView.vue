@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from 'vue';
-import { userByPage, deleteUsers } from '../api/userApi';
+import { userByPage, deleteUsers, addStudent } from '../api/userApi';
 import { Pager } from '../models/Pager';
 import { User } from '../models/User';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { RoleEnum } from '../models/RoleEnum';
 import { GenderEnum } from '../models/GenderEnum';
+import { formatDate } from '../utils/MyUtils';
 
 // 存储用户分页数据
 const pages = ref<Pager<User> | null>(null);
@@ -180,6 +181,52 @@ const onToolBarDeleteClick = () => {
   // 调用删除方法
   deleteUser(ids, names);
 }
+
+/**
+ * 清空添加学生对话框中的数据
+ */
+const clearAddStudentValue = () => {
+  addStudentForm.name = '';
+  addStudentForm.id = '';
+  addStudentForm.phone = '';
+  addStudentForm.birth = '';
+  addStudentForm.gender = '男';
+}
+
+/**
+ * 添加学生对话框添加按钮点击事件
+ */
+const onDialogAddStudentClick = () => {
+  if (addStudentForm.name.length === 0 || addStudentForm.id.length === 0 ||
+    addStudentForm.phone.length === 0 || addStudentForm.birth.length === 0) {
+    ElMessage({
+      message: '请将信息填写完整',
+      duration: 2000,
+      type: 'error'
+    });
+    return;
+  }
+
+  addStudent(addStudentForm.name, addStudentForm.id, addStudentForm.phone,
+    addStudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+    formatDate(new Date(addStudentForm.birth))).then(() => {
+      // 添加成功，清空学生信息
+      clearAddStudentValue()
+      ElMessage({
+        message: '添加成功',
+        duration: 2000,
+        type: 'success'
+      });
+      // 关闭添加学生对话框
+      dialogAddStudentVisible.value = false
+    }).catch((err) => {
+      ElMessage({
+        message: err.errMsg,
+        duration: 2000,
+        type: 'error'
+      });
+    });
+}
 </script>
 
 <template>
@@ -236,34 +283,33 @@ const onToolBarDeleteClick = () => {
     <!-- 添加学生对话框 -->
     <el-dialog v-model="dialogAddStudentVisible" title="添加学生" draggable>
       <el-form class="register-form" :model="addStudentForm" label-position="left" label-width="75px">
-          <el-form-item label="姓名">
-            <el-input v-model="addStudentForm.name" placeholder="学生姓名"></el-input>
-          </el-form-item>
-          <el-form-item label="学号">
-            <el-input v-model="addStudentForm.id" placeholder="学号"></el-input>
-          </el-form-item>
-          <el-form-item label="密码">
-            <el-input show-password placeholder="默认密码为学号 学生上线后会提示修改密码" disabled></el-input>
-          </el-form-item>
-          <el-form-item label="手机号">
-            <el-input v-model="addStudentForm.phone" placeholder="手机号"></el-input>
-          </el-form-item>
-          <el-form-item label="性别">
-            <el-radio-group v-model="addStudentForm.gender">
-              <el-radio label="男" />
-              <el-radio label="女" />
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="出生日期">
-            <el-date-picker v-model="addStudentForm.birth" type="dates" placeholder="选择出生日期" style="width: 100%;" />
-          </el-form-item>
-        </el-form>
+        <el-form-item label="姓名">
+          <el-input v-model="addStudentForm.name" placeholder="学生姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="addStudentForm.id" placeholder="学号"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input show-password placeholder="默认密码为手机后六位 学生上线后会提示修改密码" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="addStudentForm.phone" placeholder="手机号"></el-input>
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-radio-group v-model="addStudentForm.gender">
+            <el-radio label="男" />
+            <el-radio label="女" />
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="出生日期">
+          <el-date-picker v-model="addStudentForm.birth" placeholder="选择出生日期" style="width: 100%;" />
+        </el-form-item>
+      </el-form>
       <template #footer>
         <span class="dialog-footer">
+          <el-button @click="clearAddStudentValue" type="warning">重置</el-button>
           <el-button @click="dialogAddStudentVisible = false">取消</el-button>
-          <el-button type="primary" @click="dialogAddStudentVisible = false">
-            添加
-          </el-button>
+          <el-button type="primary" @click="onDialogAddStudentClick">添加</el-button>
         </span>
       </template>
     </el-dialog>

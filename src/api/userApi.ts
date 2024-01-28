@@ -45,6 +45,31 @@ export function register(name: string, id: string, password: string,
 }
 
 /**
+ * 添加学生
+ * 学生用户由管理员添加
+ * @param name 姓名
+ * @param id 学号
+ * @param phone 手机号
+ * @param gender 性别：MALE / FEMALE
+ * @param birth 生日
+ */
+export function addStudent(name: string, id: string, phone: string,
+    gender: string, birth: string) {
+    const data = {
+        name: name,
+        id: id,
+        phone: phone,
+        gender: gender,
+        birth: birth
+    };
+    return service({
+        url: '/user/student',
+        method: 'POST',
+        data: data
+    });
+}
+
+/**
  * 获取所有用户（该接口只有管理员可以调用）
  */
 export function allUsers() {

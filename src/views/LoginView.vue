@@ -168,7 +168,7 @@ const clearRegisterValue = () => {
               </el-radio-group>
             </el-form-item>
             <el-form-item label="出生日期">
-              <el-date-picker v-model="rBirth" type="dates" placeholder="选择出生日期" style="width: 100%;" />
+              <el-date-picker v-model="rBirth" placeholder="选择出生日期" style="width: 100%;" />
             </el-form-item>
           </el-form>
 

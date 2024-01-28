@@ -134,10 +134,10 @@ const onLogout = () => {
         <!-- 布局 Aside -->
         <el-aside v-if="user !== null" class="aside" width="250px">
           <div class="button-container">
-            <div class="button-div" v-for="(menu, i) in asideMenus">
+            <div class="button-div" v-for="(menu, i) in asideMenus"
+              :style="(menu.role === null || (menu.role !== null && menu.role === user.role)) ? '' : 'display:none;'">
               <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
-                :text="asideMenuIndex === i ? false : true" :icon="menu.icon"
-                v-if="menu.role === null || (menu.role !== null && menu.role === user.role)" @click="onAsideMenuChange(i)"
+                :text="asideMenuIndex === i ? false : true" :icon="menu.icon" @click="onAsideMenuChange(i)"
                 auto-insert-space>{{ menu.name }}</el-button>
             </div>
 
