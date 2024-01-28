@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { login, register } from "../api/userApi.ts";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { LoginModeEnum } from "../models/LoginModeEnum.ts";
 import { StoreEnum } from "../models/StoreEnum.ts";
 import { useRouter } from "vue-router";
 import { formatDate } from "../utils/MyUtils";
 import { RouterEnum } from "../router/RouterEnum";
 import { GenderEnum } from "../models/GenderEnum";
+import { User } from "../models/User";
+import { RoleEnum } from "../models/RoleEnum";
 
+// 定义自定义事件，用于在父页 App.vue 中打开修改密码对话框
+const emit = defineEmits([
+  'openUpdatePasswordDialog'
+]);
 
 // 工号（学号）
 const id = ref('');
@@ -52,7 +58,21 @@ const onLogin = () => {
   }
   login(id.value, password.value).then((res) => {
     // 登录成功，将用户信息存储
+    let user = res.data as User;
     localStorage.setItem(StoreEnum.USER, JSON.stringify(res.data));
+
+    // 根据上次登录时间是否为空和是否是学生，来弹出消息框让学生修改密码
+    // 因为学生默认密码是手机号后 6 位，确保安全需要修改默认密码
+    if ((user.lastLogin === null || user.lastLogin.length === 0) &&
+      user.role === RoleEnum.STUDENT) {
+      emit('openUpdatePasswordDialog');
+      // 第一次登录，并且是学生
+      ElMessage({
+        message: '为了确保账号安全，请立即修改密码',
+        duration: 2000,
+        type: 'error'
+      });
+    }
     // 跳转主页
     router.push(RouterEnum.MAIN);
   }).catch((err) => {
