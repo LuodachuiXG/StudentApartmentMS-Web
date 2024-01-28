@@ -4,9 +4,10 @@ import { StoreEnum } from './models/StoreEnum';
 import { User } from './models/User';
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, watch, ref } from 'vue';
-import { ElMessageBox } from 'element-plus';
+import { ElMessageBox, ElMessage } from 'element-plus';
 import { RoleEnum } from './models/RoleEnum';
 import { RouterEnum } from './router/RouterEnum';
+import { deleteUsers } from './api/userApi';
 
 // 当前路由线路
 const route = useRoute();
@@ -60,6 +61,8 @@ onMounted(() => {
     // 如果存储中的用户不为空，赋值给变量 user
     if (_user != null) {
       user.value = JSON.parse(_user) as User;
+    } else {
+      user.value = null;
     }
 
     // 把当前页与左侧菜单项的页面地址对比，确定左侧菜单当前选项
@@ -82,7 +85,7 @@ const onAsideMenuChange = (i: number) => {
 };
 
 /**
- * 注销帐号
+ * 注销登录
  */
 const onLogout = () => {
   ElMessageBox.confirm(
@@ -97,6 +100,52 @@ const onLogout = () => {
     localStorage.removeItem(StoreEnum.USER);
     user.value = null;
     router.push(RouterEnum.LOGIN);
+  });
+}
+
+/**
+ * 注销账号（删除当前账号，仅管理员）
+ */
+const onDelUser = () => {
+  ElMessageBox.confirm(
+    '此操作将会删除当前账号，此操作不可逆！',
+    '温馨提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'error',
+    }
+  ).then(() => {
+    ElMessageBox.confirm(
+      '确定要删除账号吗？',
+      '温馨提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error',
+      }
+    ).then(() => {
+      // 删除当前账号
+      deleteUsers(Array.of(user.value!!.userId)).then(() => {
+        // 删除账号成功
+        ElMessage({
+          message: '帐号成功删除',
+          duration: 2000,
+          type: 'success'
+        });
+        // 清除登录信息
+        localStorage.removeItem(StoreEnum.USER);
+        // 跳转登录页
+        router.push(RouterEnum.LOGIN);
+      }).catch((err) => {
+        // 帐号删除失败
+        ElMessage({
+          message: err.errMsg,
+          duration: 2000,
+          type: 'error'
+        });
+      });
+    });
   });
 }
 </script>
@@ -122,6 +171,8 @@ const onLogout = () => {
                   <el-dropdown-menu>
                     <el-dropdown-item icon="Edit">修改密码</el-dropdown-item>
                     <el-dropdown-item icon="User">个人信息</el-dropdown-item>
+                    <el-dropdown-item v-if="user?.role === RoleEnum.ADMIN" icon="Delete" divided
+                      @click="onDelUser()">注销帐号</el-dropdown-item>
                     <el-dropdown-item icon="Close" divided @click="onLogout()">注销登录</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>

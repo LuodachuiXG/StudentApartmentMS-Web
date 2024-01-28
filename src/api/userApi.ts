@@ -107,14 +107,14 @@ export function userByKeyAndPage(key: string, page: number, size: number) {
 }
 
 /**
- * 分页获取用户（该接口只有管理员可以调用）
- * @param ids 用户 ID 集合
+ * 批量删除用户（该接口只有管理员可以调用）
+ * @param userIds 用户 ID 集合
  */
-export function deleteUsers(ids: Array<number>) {
+export function deleteUsers(userIds: Array<number>) {
     return service({
         url: '/user',
         method: 'DELETE',
-        data: ids
+        data: userIds
     });
 }
 
