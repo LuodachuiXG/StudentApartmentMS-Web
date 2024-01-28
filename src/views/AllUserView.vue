@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, reactive } from 'vue';
 import { userByPage, deleteUsers } from '../api/userApi';
 import { Pager } from '../models/Pager';
 import { User } from '../models/User';
@@ -15,6 +15,21 @@ const pageSize = ref(10);
 
 // 分页器当前页数
 const currentPage = ref(1);
+
+// 表格选中的用户
+const selectedUsers = ref<User[]>();
+
+// 是否显示添加学生对话框
+const dialogAddStudentVisible = ref(false);
+
+// 添加学生表单
+const addStudentForm = reactive({
+  name: '',
+  id: '',
+  phone: '',
+  gender: '男',
+  birth: ''
+});
 
 /**
  * Vue 生命周期挂载
@@ -99,11 +114,19 @@ const onTableRoleFilterHandler = (
 }
 
 /**
- * 删除用户事件
+ * 表格选择项改变事件
+ * @param values 选择的用户
+ */
+const onTableSelectChange = (values: User[]) => {
+  selectedUsers.value = values;
+}
+
+/**
+ * 删除用户
  * @param ids 用户 ID 集合
  * @param names 用户姓名集合
  */
-const onDeleteUser = (ids: Array<number>, names: Array<string>) => {
+const deleteUser = (ids: Array<number>, names: Array<string>) => {
   ElMessageBox.confirm(
     `确定要删除 [${names}] ${ids.length} 个用户吗？此操作不可逆！`,
     '温馨提示',
@@ -139,22 +162,39 @@ const onDeleteUser = (ids: Array<number>, names: Array<string>) => {
  * @param name 用户姓名
  */
 const onTableColDeleteClick = (userId: number, name: string) => {
-  onDeleteUser(Array.of(userId), Array.of(name));
+  deleteUser(Array.of(userId), Array.of(name));
+}
+
+/**
+ * 工具栏删除按钮点击事件
+ */
+const onToolBarDeleteClick = () => {
+  // 将当前选中的用户的用户 ID 和姓名存在两个数组中
+  const ids = new Array<number>();
+  const names = new Array<string>();
+  selectedUsers.value?.forEach((user) => {
+    ids.push(user.userId);
+    names.push(user.name);
+  });
+
+  // 调用删除方法
+  deleteUser(ids, names);
 }
 </script>
 
 <template>
   <div class="container">
     <div class="button-group">
-      <el-button plain type="primary">添加学生</el-button>
+      <el-button plain type="primary" @click="dialogAddStudentVisible = true">添加学生</el-button>
       <el-button plain type="primary">查找用户</el-button>
-      <el-button type="danger" plain>删除</el-button>
+      <el-button type="danger" plain @click="onToolBarDeleteClick"
+        :disabled="selectedUsers == null || selectedUsers.length == 0">删除</el-button>
 
     </div>
     <div class="table">
       <!-- 表格，显示用户 -->
-      <el-table class="table" :data="pages?.data" border height="72vh"
-        :default-sort="{ prop: 'birth', order: 'descending' }">
+      <el-table class="table" :data="pages?.data" border height="75vh"
+        :default-sort="{ prop: 'birth', order: 'descending' }" @selection-change="onTableSelectChange">
         <el-table-column type="selection" width="55" />
         <el-table-column fixed prop="id" label="工号（学号）" width="120" />
         <el-table-column fixed prop="name" label="姓名" width="90" />
@@ -191,6 +231,46 @@ const onTableColDeleteClick = (userId: number, name: string) => {
       <el-pagination class="pagination" :page-size="pages?.size" layout="total, prev, pager, next, sizes"
         :total="pages?.totalData" @current-change="onTableCurrentPageChange" @size-change="onTableSizeChangChange" />
     </div>
+
+
+    <!-- 添加学生对话框 -->
+    <el-dialog v-model="dialogAddStudentVisible" title="添加学生" draggable>
+      <el-form class="register-form" :model="addStudentForm" label-position="left" label-width="75px">
+          <el-form-item label="姓名">
+            <el-input v-model="addStudentForm.name" placeholder="学生姓名"></el-input>
+          </el-form-item>
+          <el-form-item label="学号">
+            <el-input v-model="addStudentForm.id" placeholder="学号"></el-input>
+          </el-form-item>
+          <el-form-item label="密码">
+            <el-input show-password placeholder="默认密码为学号 学生上线后会提示修改密码" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="手机号">
+            <el-input v-model="addStudentForm.phone" placeholder="手机号"></el-input>
+          </el-form-item>
+          <el-form-item label="性别">
+            <el-radio-group v-model="addStudentForm.gender">
+              <el-radio label="男" />
+              <el-radio label="女" />
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="出生日期">
+            <el-date-picker v-model="addStudentForm.birth" type="dates" placeholder="选择出生日期" style="width: 100%;" />
+          </el-form-item>
+        </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogAddStudentVisible = false">取消</el-button>
+          <el-button type="primary" @click="dialogAddStudentVisible = false">
+            添加
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+
+
+
   </div>
 </template>
 
