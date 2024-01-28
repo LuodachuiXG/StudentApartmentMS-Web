@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { login, register } from "../api/userApi.ts";
-import { ElMessage, ElMessageBox } from "element-plus";
 import { LoginModeEnum } from "../models/LoginModeEnum.ts";
 import { StoreEnum } from "../models/StoreEnum.ts";
 import { useRouter } from "vue-router";
-import { formatDate } from "../utils/MyUtils";
+import { errorMsg, formatDate, successMsg } from "../utils/MyUtils";
 import { RouterEnum } from "../router/RouterEnum";
 import { GenderEnum } from "../models/GenderEnum";
 import { User } from "../models/User";
@@ -49,11 +48,7 @@ const rBirth = ref('');
 const onLogin = () => {
   if (id.value.length === 0 || password.value.length === 0) {
     // 弹出通知框
-    ElMessage({
-      message: '请将工号（学号）或密码填写完整',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('请将工号（学号）或密码填写完整');
     return;
   }
   login(id.value, password.value).then((res) => {
@@ -67,21 +62,12 @@ const onLogin = () => {
       user.role === RoleEnum.STUDENT) {
       emit('openUpdatePasswordDialog');
       // 第一次登录，并且是学生
-      ElMessage({
-        message: '为了确保账号安全，请立即修改密码',
-        duration: 2000,
-        type: 'error'
-      });
+      errorMsg('为了确保账号安全，请立即修改密码');
     }
     // 跳转主页
     router.push(RouterEnum.MAIN);
   }).catch((err) => {
-    console.log(err);
-    ElMessage({
-      message: err.errMsg,
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg(err.errMsg);
   });
 }
 
@@ -92,20 +78,12 @@ const onRegister = () => {
   if (rName.value.length === 0 || rId.value.length === 0 || rPwd.value.length === 0 ||
     rPwdAgain.value.length === 0 || rPhone.value.length === 0 ||
     rBirth.value === null || rBirth.value.length === 0) {
-    ElMessage({
-      message: '请将信息填写完整',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('请将信息填写完整');
     return;
   }
 
   if (rPwd.value != rPwdAgain.value) {
-    ElMessage({
-      message: '两次输入的密码不一致',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('两次输入的密码不一致');
     return;
   }
 
@@ -116,17 +94,9 @@ const onRegister = () => {
       clearRegisterValue();
       // 跳转登录页
       currentMode.value = LoginModeEnum.LOGIN;
-      ElMessage({
-        message: '注册成功',
-        duration: 2000,
-        type: 'success'
-      });
+      successMsg('注册成功');
     }).catch((err) => {
-      ElMessage({
-        message: err.errMsg,
-        duration: 2000,
-        type: 'error'
-      });
+      errorMsg(err.errMsg);
     });
 }
 

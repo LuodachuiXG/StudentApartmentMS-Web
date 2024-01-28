@@ -3,10 +3,9 @@ import { onMounted, ref, reactive } from 'vue';
 import { userByPage, deleteUsers, addStudent, userByKeyAndPage, updateUser } from '../api/userApi';
 import { Pager } from '../models/Pager';
 import { User } from '../models/User';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import { RoleEnum } from '../models/RoleEnum';
 import { GenderEnum } from '../models/GenderEnum';
-import { formatDate } from '../utils/MyUtils';
+import { errorMsg, formatDate, successMsg, warningConfirmBox } from '../utils/MyUtils';
 
 /**
  * 学生对话框模式枚举类
@@ -78,11 +77,7 @@ const refreshTableData = () => {
       pages.value = res.data;
     }).catch((err) => {
       // 查找失败
-      ElMessage({
-        message: err.errMsg,
-        duration: 2000,
-        type: 'error'
-      });
+      errorMsg(err.errMsg);
     });
   } else {
     // 当前是普通显示用户模式
@@ -91,11 +86,7 @@ const refreshTableData = () => {
       // 请求成功
       pages.value = res.data;
     }).catch((err) => {
-      ElMessage({
-        message: err.errMsg,
-        duration: 2000,
-        type: 'error'
-      });
+      errorMsg(err.errMsg);
     });
   }
 }
@@ -175,31 +166,15 @@ const onTableSelectChange = (values: User[]) => {
  * @param names 用户姓名集合
  */
 const deleteUser = (ids: Array<number>, names: Array<string>) => {
-  ElMessageBox.confirm(
-    `确定要删除 [${names}] ${ids.length} 个用户吗？此操作不可逆！`,
-    '温馨提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
+  warningConfirmBox(`确定要删除 [${names}] ${ids.length} 个用户吗？此操作不可逆！`).then(() => {
     deleteUsers(ids).then(() => {
       // 删除成功
-      ElMessage({
-        message: `删除 ${ids.length} 个用户成功`,
-        duration: 2000,
-        type: 'success'
-      });
+      successMsg(`删除 ${ids.length} 个用户成功`);
       // 刷新用户
       refreshTableData();
     }).catch((err) => {
       // 删除用户失败
-      ElMessage({
-        message: err.errMsg,
-        duration: 2000,
-        type: 'error'
-      });
+      errorMsg(err.errMsg);
     });
   });
 }
@@ -282,11 +257,7 @@ const onDialogStudentClick = () => {
   if (dialogstudentForm.name.length === 0 || dialogstudentForm.id.length === 0 ||
     dialogstudentForm.phone.length === 0 || dialogstudentForm.birth === null ||
     dialogstudentForm.birth.length === 0) {
-    ElMessage({
-      message: '请将信息填写完整',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('请将信息填写完整');
     return;
   }
 
@@ -296,22 +267,14 @@ const onDialogStudentClick = () => {
       dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
       formatDate(new Date(dialogstudentForm.birth))).then(() => {
         // 添加成功，清空学生信息
-        clearStudentValue()
-        ElMessage({
-          message: '添加成功',
-          duration: 2000,
-          type: 'success'
-        });
+        clearStudentValue();
+        successMsg('添加成功');
         // 刷新用户数据
         refreshTableData();
         // 关闭学生对话框
         dialogStudentVisible.value = false
       }).catch((err) => {
-        ElMessage({
-          message: err.errMsg,
-          duration: 2000,
-          type: 'error'
-        });
+        errorMsg(err.errMsg);
       });
   } else {
     // 当前是修改学生模式
@@ -320,22 +283,14 @@ const onDialogStudentClick = () => {
       dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
       formatDate(new Date(dialogstudentForm.birth))).then(() => {
         // 修改成功，清空学生信息
-        clearStudentValue()
-        ElMessage({
-          message: '修改成功',
-          duration: 2000,
-          type: 'success'
-        });
+        clearStudentValue();
+        successMsg('修改成功');
         // 刷新用户数据
         refreshTableData();
         // 关闭学生对话框
         dialogStudentVisible.value = false
       }).catch((err) => {
-        ElMessage({
-          message: err.errMsg,
-          duration: 2000,
-          type: 'error'
-        });
+        errorMsg(err.errMsg);
       });
   }
 
@@ -348,11 +303,7 @@ const onDialogStudentClick = () => {
  */
 const onDialogSearchClick = () => {
   if (searchForm.key.length === 0) {
-    ElMessage({
-      message: '请将信息填写完整',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('请将信息填写完整');
     return;
   }
   // 设置当前聚合查找的关键字

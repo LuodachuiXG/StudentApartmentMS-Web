@@ -4,12 +4,11 @@ import { StoreEnum } from './models/StoreEnum';
 import { User } from './models/User';
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, watch, ref, reactive, provide } from 'vue';
-import { ElMessageBox, ElMessage } from 'element-plus';
 import { RoleEnum } from './models/RoleEnum';
 import { RouterEnum } from './router/RouterEnum';
 import { deleteUsers, updateUser, updateUserPassword } from './api/userApi';
 import { GenderEnum } from './models/GenderEnum';
-import { formatDate } from './utils/MyUtils';
+import { errorConfirmBox, errorMsg, formatDate, successMsg, warningConfirmBox } from './utils/MyUtils';
 
 // 当前路由线路
 const route = useRoute();
@@ -111,15 +110,7 @@ const onAsideMenuChange = (i: number) => {
  * 注销登录
  */
 const onLogout = () => {
-  ElMessageBox.confirm(
-    '确定退出登录吗？',
-    '温馨提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
+  warningConfirmBox('确定退出登录吗？').then(() => {
     localStorage.removeItem(StoreEnum.USER);
     user.value = null;
     router.push(RouterEnum.LOGIN);
@@ -130,43 +121,19 @@ const onLogout = () => {
  * 注销账号（删除当前账号，仅管理员）
  */
 const onDelUser = () => {
-  ElMessageBox.confirm(
-    '此操作将会删除当前账号，此操作不可逆！',
-    '温馨提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'error',
-    }
-  ).then(() => {
-    ElMessageBox.confirm(
-      '确定要删除账号吗？',
-      '温馨提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'error',
-      }
-    ).then(() => {
+  errorConfirmBox('此操作将会删除当前账号，此操作不可逆！').then(() => {
+    errorConfirmBox('确定要删除账号吗？').then(() => {
       // 删除当前账号
       deleteUsers(Array.of(user.value!!.userId)).then(() => {
         // 删除账号成功
-        ElMessage({
-          message: '帐号成功删除',
-          duration: 2000,
-          type: 'success'
-        });
+        successMsg('帐号成功删除');
         // 清除登录信息
         localStorage.removeItem(StoreEnum.USER);
         // 跳转登录页
         router.push(RouterEnum.LOGIN);
       }).catch((err) => {
         // 帐号删除失败
-        ElMessage({
-          message: err.errMsg,
-          duration: 2000,
-          type: 'error'
-        });
+        errorMsg(err.errMsg);
       });
     });
   });
@@ -195,11 +162,7 @@ const onDialogUserInfoSaveClick = () => {
   if (dialogUserInfoForm.name.length === 0 || dialogUserInfoForm.id.length === 0 ||
     dialogUserInfoForm.phone.length === 0 || dialogUserInfoForm.gender.length === 0 ||
     dialogUserInfoForm.birth === null || dialogUserInfoForm.birth.length === 0) {
-    ElMessage({
-      message: '请将信息填写完整',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('请将信息填写完整');
     return;
   }
 
@@ -208,11 +171,7 @@ const onDialogUserInfoSaveClick = () => {
     dialogUserInfoForm.id, '', dialogUserInfoForm.phone,
     dialogUserInfoForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
     formatDate(new Date(dialogUserInfoForm.birth))).then(() => {
-      ElMessage({
-        message: '修改成功',
-        duration: 2000,
-        type: 'success'
-      });
+      successMsg('修改成功');
       // 将新数据写入当前登录的用户缓存
       let mUser = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
       mUser.name = dialogUserInfoForm.name;
@@ -228,11 +187,7 @@ const onDialogUserInfoSaveClick = () => {
       // 关闭个人信息对话框
       dialogUserInfoVisible.value = false
     }).catch((err) => {
-      ElMessage({
-        message: err.errMsg,
-        duration: 2000,
-        type: 'error'
-      });
+      errorMsg(err.errMsg);
     });
 }
 
@@ -255,42 +210,26 @@ const onDialogUpdatePasswordSaveClick = () => {
   if (dialogUpdatePasswordForm.oldPwd.length === 0 ||
     dialogUpdatePasswordForm.newPwd.length === 0 ||
     dialogUpdatePasswordForm.newPwdAgain.length === 0) {
-    ElMessage({
-      message: '请将信息填写完整',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('请将信息填写完整');
     return;
   }
 
   if (dialogUpdatePasswordForm.newPwd !== dialogUpdatePasswordForm.newPwdAgain) {
-    ElMessage({
-      message: '两次输入的密码不一致',
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg('两次输入的密码不一致');
     return;
   }
 
   // 修改密码
   updateUserPassword(dialogUpdatePasswordForm.oldPwd, dialogUpdatePasswordForm.newPwd).then(() => {
     // 修改密码成功
-    ElMessage({
-      message: '修改成功',
-      duration: 2000,
-      type: 'success'
-    });
+    successMsg('修改成功');
     // 清空修改密码对话框表单
     clearDialogUpdatePasswordForm();
     // 关闭修改密码对话框
     dialogUpdatePasswordVisible.value = false;
   }).catch((err) => {
     // 修改密码失败
-    ElMessage({
-      message: err.errMsg,
-      duration: 2000,
-      type: 'error'
-    });
+    errorMsg(err.errMsg);
   });
 }
 
