@@ -3,12 +3,12 @@ import { useDark, useToggle } from '@vueuse/core';
 import { StoreEnum } from './models/StoreEnum';
 import { User } from './models/User';
 import { useRoute, useRouter } from 'vue-router';
-import { onMounted, watch, ref, reactive, provide } from 'vue';
+import { onMounted, watch, ref, reactive } from 'vue';
 import { RoleEnum } from './models/RoleEnum';
-import { RouterEnum } from './router/RouterEnum';
 import { deleteUsers, updateUser, updateUserPassword } from './api/userApi';
 import { GenderEnum } from './models/GenderEnum';
 import { errorConfirmBox, errorMsg, formatDate, successMsg, warningConfirmBox } from './utils/MyUtils';
+import { RouterViews } from './router/RouterViews';
 
 // 当前路由线路
 const route = useRoute();
@@ -52,20 +52,26 @@ const asideMenuIndex = ref(0);
 const asideMenus = [
   {
     name: '首页',
-    routerName: RouterEnum.MAIN,
+    routerName: RouterViews.MAIN,
     icon: 'House',
     role: null
   },
   // 只有管理员显示此菜单
   {
     name: '用户',
-    routerName: RouterEnum.ALL_USER,
+    routerName: RouterViews.ALL_USER,
     icon: 'User',
     role: RoleEnum.ADMIN
   },
   {
+    name: '宿舍',
+    routerName: RouterViews.DORMITORY,
+    icon: 'House',
+    role: null
+  },
+  {
     name: '留言',
-    routerName: RouterEnum.MSG_BOARD,
+    routerName: RouterViews.MSG_BOARD,
     icon: 'User',
     role: null
   },
@@ -113,7 +119,7 @@ const onLogout = () => {
   warningConfirmBox('确定退出登录吗？').then(() => {
     localStorage.removeItem(StoreEnum.USER);
     user.value = null;
-    router.push(RouterEnum.LOGIN);
+    router.push(RouterViews.LOGIN);
   });
 }
 
@@ -130,7 +136,7 @@ const onDelUser = () => {
         // 清除登录信息
         localStorage.removeItem(StoreEnum.USER);
         // 跳转登录页
-        router.push(RouterEnum.LOGIN);
+        router.push(RouterViews.LOGIN);
       }).catch((err) => {
         // 帐号删除失败
         errorMsg(err.errMsg);
@@ -241,13 +247,6 @@ const clearDialogUpdatePasswordForm = () => {
   dialogUpdatePasswordForm.newPwd = '';
   dialogUpdatePasswordForm.newPwdAgain = '';
 }
-
-/**
- * 提供一个接口，给其他子页调用，用于打开修改密码对话框
- */
-provide('openUpdatePasswordDialog', () => {
-  dialogUpdatePasswordVisible.value = true;
-});
 </script>
 
 <template>
@@ -269,10 +268,11 @@ provide('openUpdatePasswordDialog', () => {
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item icon="Edit" @click="dialogUpdatePasswordVisible = true">修改密码</el-dropdown-item>
+                    <el-dropdown-item icon="Edit" @click="dialogUpdatePasswordVisible = true">修改密码
+                    </el-dropdown-item>
                     <el-dropdown-item icon="User" @click="onUserInfo()">个人信息</el-dropdown-item>
-                    <el-dropdown-item v-if="user?.role === RoleEnum.ADMIN" icon="Delete" divided
-                      @click="onDelUser()">注销帐号</el-dropdown-item>
+                    <el-dropdown-item v-if="user?.role === RoleEnum.ADMIN" icon="Delete" divided @click="onDelUser()">注销帐号
+                    </el-dropdown-item>
                     <el-dropdown-item icon="Close" divided @click="onLogout()">注销登录</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -286,10 +286,11 @@ provide('openUpdatePasswordDialog', () => {
         <el-aside v-if="user !== null" class="aside" width="250px">
           <div class="button-container">
             <div class="button-div" v-for="(menu, i) in asideMenus"
-              :style="(menu.role === null || (menu.role !== null && menu.role === user.role)) ? '' : 'display:none;'">
+              :style="(menu.role === null || (menu.role === user.role)) ? '' : 'display:none;'">
               <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
-                :text="asideMenuIndex === i ? false : true" :icon="menu.icon" @click="onAsideMenuChange(i)"
-                auto-insert-space>{{ menu.name }}</el-button>
+                :text="asideMenuIndex !== i" :icon="menu.icon" @click="onAsideMenuChange(i)" auto-insert-space>{{ menu.name
+                }}
+              </el-button>
             </div>
 
           </div>
@@ -380,7 +381,7 @@ provide('openUpdatePasswordDialog', () => {
   display: flex;
   justify-content: end;
   align-items: center;
-  padding: 0 0vw;
+  padding: 0 0;
 }
 
 .head-right .user {
@@ -406,7 +407,7 @@ provide('openUpdatePasswordDialog', () => {
 }
 
 .aside .button-container .button-div:first-child {
-  margin-top: 0px;
+  margin-top: 0;
 }
 
 .aside .button-container .button {

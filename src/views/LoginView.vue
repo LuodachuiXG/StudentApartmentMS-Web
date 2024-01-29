@@ -5,10 +5,10 @@ import { LoginModeEnum } from "../models/LoginModeEnum.ts";
 import { StoreEnum } from "../models/StoreEnum.ts";
 import { useRouter } from "vue-router";
 import { errorMsg, formatDate, successMsg } from "../utils/MyUtils";
-import { RouterEnum } from "../router/RouterEnum";
 import { GenderEnum } from "../models/GenderEnum";
 import { User } from "../models/User";
 import { RoleEnum } from "../models/RoleEnum";
+import { RouterViews } from "../router/RouterViews";
 
 // 定义自定义事件，用于在父页 App.vue 中打开修改密码对话框
 const emit = defineEmits([
@@ -65,7 +65,7 @@ const onLogin = () => {
       errorMsg('为了确保账号安全，请立即修改密码');
     }
     // 跳转主页
-    router.push(RouterEnum.MAIN);
+    router.push(RouterViews.MAIN);
   }).catch((err) => {
     errorMsg(err.errMsg);
   });

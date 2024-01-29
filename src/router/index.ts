@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { StoreEnum } from '../models/StoreEnum';
-import { ElMessage } from "element-plus";
 import { RoleEnum } from '../models/RoleEnum';
 import { User } from '../models/User';
-import { RouterEnum } from './RouterEnum';
+import { errorMsg } from '../utils/MyUtils';
+import { RouterViews } from './RouterViews';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,25 +19,30 @@ const router = createRouter({
         },
         {
             path: '/',
-            name: RouterEnum.LOGIN,
+            name: RouterViews.LOGIN,
             component: () => import('../views/LoginView.vue')
         },
         {
-            path: `/${RouterEnum.MAIN}`,
-            name: RouterEnum.MAIN,
+            path: `/${RouterViews.MAIN}`,
+            name: RouterViews.MAIN,
             component: () => import('../views/MainView.vue')
         },
         {
-            path: `/${RouterEnum.ALL_USER}`,
-            name: RouterEnum.ALL_USER,
+            path: `/${RouterViews.ALL_USER}`,
+            name: RouterViews.ALL_USER,
             component: () => import('../views/AllUserView.vue'),
             meta: {
                 role: RoleEnum.ADMIN
             }
         },
         {
-            path: `/${RouterEnum.MSG_BOARD}`,
-            name: RouterEnum.MSG_BOARD,
+            path: `/${RouterViews.DORMITORY}`,
+            name: RouterViews.DORMITORY,
+            component: () => import('../views/DormitoryView.vue'),
+        },
+        {
+            path: `/${RouterViews.MSG_BOARD}`,
+            name: RouterViews.MSG_BOARD,
             component: () => import('../views/MessageBoardView.vue')
         },
     ]
@@ -47,13 +52,9 @@ const router = createRouter({
 router.beforeEach(async (to, _from) => {
     // 未登录的话跳转到登录页面
     if (to.name !== 'login' && localStorage.getItem(StoreEnum.USER) === null) {
-        ElMessage({
-            message: '登录已过期，请重新登录',
-            duration: 2000,
-            type: 'error'
-        });
+        errorMsg('登录已过期，请重新登录');
         console.log('登录已过期，请重新登录')
-        return { name: RouterEnum.LOGIN }
+        return { name: RouterViews.LOGIN }
     }
 
     const viewRole: RoleEnum | undefined = to.meta.role as RoleEnum;
@@ -61,12 +62,8 @@ router.beforeEach(async (to, _from) => {
     if (viewRole !== undefined) {
         const user = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
         if (viewRole != user.role) {
-            ElMessage({
-                message: `你没有权限访问 ${to.path}`,
-                duration: 2000,
-                type: 'error'
-            });
-            return { name: RouterEnum.MAIN }
+            errorMsg(`你没有权限访问 ${to.path}`)
+            return { name: RouterViews.MAIN }
         }
     }
 })

@@ -1,9 +1,8 @@
 import axios, { AxiosRequestHeaders } from "axios";
 import { StoreEnum } from "../models/StoreEnum";
 import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
 import { User } from "../models/User";
-import { RouterEnum } from "../router/RouterEnum";
+import { errorMsg } from "../utils/MyUtils";
 
 const router = useRouter();
 
@@ -37,8 +36,15 @@ service.interceptors.request.use((config) => {
 });
 
 
-// 响应拦截：后端返回来的结果
+/**
+ * 响应拦截：后端返回来的结果
+ */
 service.interceptors.response.use((res) => {
+    if (res.status === 401) {
+        // 未登录或 Token 过期
+        tokenExpired()
+        return Promise.reject(res.data);
+    }
     // 请求成功
     return Promise.resolve(res.data);
 }, (err) => {
@@ -49,19 +55,22 @@ service.interceptors.response.use((res) => {
     const code: number = err.response.data.code;
     if (code === 401) {
         // 未登录或 Token 过期
-        // 移除用户配置信息
-        localStorage.removeItem(StoreEnum.USER);
-        // 跳转登录界面
-        router.push(RouterEnum.LOGIN);
-        ElMessage({
-            message: '登录已过期，请重新登录',
-            duration: 2000,
-            type: 'error'
-        });
+        tokenExpired()
         return Promise.reject(err.response.data);
     }
     // 处理错误响应
-    return Promise.reject(err.response.data);  
+    return Promise.reject(err.response.data);
 });
+
+/**
+ * Token 过期
+ */
+const tokenExpired = () => {
+    // 移除用户配置信息
+    localStorage.removeItem(StoreEnum.USER);
+    // 跳转登录界面
+    router.push(RouterView.LOGIN);
+    errorMsg('登录已过期，请重新登录');
+}
 
 export default service;
