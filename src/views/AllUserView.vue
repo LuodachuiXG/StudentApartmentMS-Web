@@ -344,9 +344,13 @@ const onDialogSearchResettingClick = () => {
   <div class="container">
     <div class="button-group">
       <el-button plain type="primary" @click="onToolBarAddStudentClick">添加学生</el-button>
-      <el-button :plain="!isSearchMode" :type="isSearchMode ? 'success' : 'primary'" @click="dialogSearchVisible = true">
-        {{ isSearchMode ? '聚合查找：' + searchKey : '聚合查找' }}
-      </el-button>
+      <el-button-group v-if="isSearchMode" style="margin: 0 12px;">
+        <el-button type="success" @click="dialogSearchVisible = true">
+          {{ '聚合查找：' + searchKey }}
+        </el-button>
+        <el-button type="warning" @click="onDialogSearchResettingClick">重置搜索</el-button>
+      </el-button-group>
+      <el-button v-if="!isSearchMode" plain type="primary" @click="dialogSearchVisible = true">聚合查找</el-button>
       <el-button type="danger" plain @click="onToolBarDeleteClick"
         :disabled="selectedUsers == null || selectedUsers.length == 0">删除</el-button>
 
