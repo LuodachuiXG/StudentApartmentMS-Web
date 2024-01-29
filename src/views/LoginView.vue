@@ -67,7 +67,7 @@ const onLogin = () => {
     // 跳转主页
     router.push(RouterViews.MAIN);
   }).catch((err) => {
-    errorMsg(err.errMsg);
+    errorMsg(err);
   });
 }
 
@@ -96,7 +96,7 @@ const onRegister = () => {
       currentMode.value = LoginModeEnum.LOGIN;
       successMsg('注册成功');
     }).catch((err) => {
-      errorMsg(err.errMsg);
+      errorMsg(err);
     });
 }
 

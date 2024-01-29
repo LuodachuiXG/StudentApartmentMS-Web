@@ -5,7 +5,7 @@ import { User } from '../models/User';
 import { errorMsg } from '../utils/MyUtils';
 import { RouterViews } from './RouterViews';
 
-const router = createRouter({
+export const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
@@ -53,7 +53,6 @@ router.beforeEach(async (to, _from) => {
     // 未登录的话跳转到登录页面
     if (to.name !== 'login' && localStorage.getItem(StoreEnum.USER) === null) {
         errorMsg('登录已过期，请重新登录');
-        console.log('登录已过期，请重新登录')
         return { name: RouterViews.LOGIN }
     }
 

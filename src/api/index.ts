@@ -1,10 +1,9 @@
 import axios, { AxiosRequestHeaders } from "axios";
 import { StoreEnum } from "../models/StoreEnum";
-import { useRouter } from "vue-router";
 import { User } from "../models/User";
-import { errorMsg } from "../utils/MyUtils";
+import { RouterViews } from "../router/RouterViews";
+import { router } from "../router/index";
 
-const router = useRouter();
 
 // 创建 axios 实例
 const service = axios.create({
@@ -40,37 +39,22 @@ service.interceptors.request.use((config) => {
  * 响应拦截：后端返回来的结果
  */
 service.interceptors.response.use((res) => {
-    if (res.status === 401) {
-        // 未登录或 Token 过期
-        tokenExpired()
-        return Promise.reject(res.data);
-    }
     // 请求成功
-    return Promise.resolve(res.data);
+    return res.data;
 }, (err) => {
-    // code 是后端的状态码
-    if (err.response == undefined) {
-        return Promise.reject(err.message);
-    }
-    const code: number = err.response.data.code;
-    if (code === 401) {
-        // 未登录或 Token 过期
-        tokenExpired()
-        return Promise.reject(err.response.data);
+    if (err.response) {
+        // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
+        if (err.response.data.code === 401) {
+            // 未登录或 Token 过期
+            // 移除用户配置信息
+            localStorage.removeItem(StoreEnum.USER);
+            // 跳转登录界面
+            router.push(RouterViews.LOGIN);
+        }
+        return Promise.reject(err.response.data.errMsg);
     }
     // 处理错误响应
-    return Promise.reject(err.response.data);
+    return Promise.reject(err.code ? err.code : err.response.data.errMsg);
 });
-
-/**
- * Token 过期
- */
-const tokenExpired = () => {
-    // 移除用户配置信息
-    localStorage.removeItem(StoreEnum.USER);
-    // 跳转登录界面
-    router.push(RouterView.LOGIN);
-    errorMsg('登录已过期，请重新登录');
-}
 
 export default service;

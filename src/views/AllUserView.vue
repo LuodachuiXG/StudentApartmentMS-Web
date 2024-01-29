@@ -77,7 +77,7 @@ const refreshTableData = () => {
       pages.value = res.data;
     }).catch((err) => {
       // 查找失败
-      errorMsg(err.errMsg);
+      errorMsg(err);
     });
   } else {
     // 当前是普通显示用户模式
@@ -86,7 +86,7 @@ const refreshTableData = () => {
       // 请求成功
       pages.value = res.data;
     }).catch((err) => {
-      errorMsg(err.errMsg);
+      errorMsg(err);
     });
   }
 }
@@ -174,7 +174,7 @@ const deleteUser = (ids: Array<number>, names: Array<string>) => {
       refreshTableData();
     }).catch((err) => {
       // 删除用户失败
-      errorMsg(err.errMsg);
+      errorMsg(err);
     });
   });
 }
@@ -274,7 +274,7 @@ const onDialogStudentClick = () => {
         // 关闭学生对话框
         dialogStudentVisible.value = false
       }).catch((err) => {
-        errorMsg(err.errMsg);
+        errorMsg(err);
       });
   } else {
     // 当前是修改学生模式
@@ -290,11 +290,9 @@ const onDialogStudentClick = () => {
         // 关闭学生对话框
         dialogStudentVisible.value = false
       }).catch((err) => {
-        errorMsg(err.errMsg);
+        errorMsg(err);
       });
   }
-
-
 }
 
 
@@ -348,7 +346,7 @@ const onDialogSearchResettingClick = () => {
         <el-button type="success" @click="dialogSearchVisible = true">
           {{ '聚合查找：' + searchKey }}
         </el-button>
-        <el-button type="warning" @click="onDialogSearchResettingClick">重置搜索</el-button>
+        <el-button type="warning" @click="onDialogSearchResettingClick">重置查找</el-button>
       </el-button-group>
       <el-button v-if="!isSearchMode" plain type="primary" @click="dialogSearchVisible = true">聚合查找</el-button>
       <el-button type="danger" plain @click="onToolBarDeleteClick"
@@ -448,7 +446,7 @@ const onDialogSearchResettingClick = () => {
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="onDialogSearchResettingClick" type="warning" plain>重置搜索</el-button>
+          <el-button @click="onDialogSearchResettingClick" type="warning" plain>重置查找</el-button>
           <el-button @click="dialogSearchVisible = false">取消</el-button>
           <el-button type="primary" @click="onDialogSearchClick">查找</el-button>
         </span>

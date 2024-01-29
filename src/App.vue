@@ -139,7 +139,7 @@ const onDelUser = () => {
         router.push(RouterViews.LOGIN);
       }).catch((err) => {
         // 帐号删除失败
-        errorMsg(err.errMsg);
+        errorMsg(err);
       });
     });
   });
@@ -193,7 +193,7 @@ const onDialogUserInfoSaveClick = () => {
       // 关闭个人信息对话框
       dialogUserInfoVisible.value = false
     }).catch((err) => {
-      errorMsg(err.errMsg);
+      errorMsg(err);
     });
 }
 
@@ -235,7 +235,7 @@ const onDialogUpdatePasswordSaveClick = () => {
     dialogUpdatePasswordVisible.value = false;
   }).catch((err) => {
     // 修改密码失败
-    errorMsg(err.errMsg);
+    errorMsg(err);
   });
 }
 
