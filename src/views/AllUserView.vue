@@ -6,6 +6,7 @@ import { User } from '../models/User';
 import { RoleEnum } from '../models/RoleEnum';
 import { GenderEnum } from '../models/GenderEnum';
 import { errorMsg, formatDate, successMsg, warningConfirmBox } from '../utils/MyUtils';
+import { useRoute } from 'vue-router';
 
 /**
  * 学生对话框模式枚举类
@@ -16,6 +17,8 @@ enum StudentMode {
   //
   ADD
 }
+
+const route = useRoute();
 
 // 存储用户分页数据
 const pages = ref<Pager<User> | null>(null);
@@ -62,7 +65,17 @@ const searchForm = reactive({
  * Vue 生命周期挂载
  */
 onMounted(() => {
-  refreshTableData();
+  // 跳转当前页是否带有工号参数
+  const id = route.query.id;
+  if (id !== undefined) {
+    // 带有工号参数，直接进入聚合查找模式
+    searchForm.key = id!!.toString();
+    // 启动聚合查找
+    onDialogSearchClick();
+  } else {
+    // 没有传参，正常获取所有用户
+    refreshTableData();
+  }
 });
 
 /**
@@ -371,7 +384,7 @@ const onDialogSearchResettingClick = () => {
         ]" :filter-method="onTableGenderFilterHandler" />
         <el-table-column prop="birth" label="出生日期" width="120" sortable />
         <el-table-column prop="lastLogin" label="最后登录" width="220" />
-        <el-table-column fixed="right" label="操作" width="180" style="">
+        <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
             <!-- 管理员只能修改学生信息，不能修改管理员信息 -->
             <div v-if="scope.row.role === RoleEnum.STUDENT">
@@ -470,10 +483,6 @@ const onDialogSearchResettingClick = () => {
 
 .button-group {
   margin-bottom: 10px;
-}
-
-.table {
-  width: 100%;
 }
 
 .pagination-div {

@@ -18,7 +18,7 @@ export function login(id: string, password: string) {
 
 
 /**
- * 用户注册，此接口只能用于注册管理员
+ * 用户注册，仅用于注册管理员
  * 学生用户由管理员添加
  * @param name 姓名
  * @param id 工号
@@ -70,7 +70,8 @@ export function addStudent(name: string, id: string, phone: string,
 }
 
 /**
- * 获取所有用户（该接口只有管理员可以调用）
+ * 获取所有用户
+ * 仅管理员
  */
 export function allUsers() {
     return service({
@@ -80,7 +81,8 @@ export function allUsers() {
 }
 
 /**
- * 分页获取用户（该接口只有管理员可以调用）
+ * 分页获取用户
+ * 仅管理员
  * @param page 当前页
  * @param size 每页大小
  */
@@ -95,6 +97,7 @@ export function userByPage(page: number, size: number) {
 /**
  * 分页和关键词获取用户信息
  * 关键词：工号（学号）、姓名、电话
+ * 仅管理员
  * @param key 查询的关键词
  * @param page 当前页数
  * @param size 每页大小
@@ -107,7 +110,8 @@ export function userByKeyAndPage(key: string, page: number, size: number) {
 }
 
 /**
- * 批量删除用户（该接口只有管理员可以调用）
+ * 批量删除用户
+ * 仅管理员
  * @param userIds 用户 ID 集合
  */
 export function deleteUsers(userIds: Array<number>) {

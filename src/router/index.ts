@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import { StoreEnum } from '../models/StoreEnum';
 import { RoleEnum } from '../models/RoleEnum';
 import { User } from '../models/User';
@@ -6,7 +6,7 @@ import { errorMsg } from '../utils/MyUtils';
 import { RouterViews } from './RouterViews';
 
 export const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHashHistory(),
     routes: [
         {
             path: '/404',
