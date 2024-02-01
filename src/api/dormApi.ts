@@ -65,3 +65,16 @@ export function updateDorm(dormId: number, name: string) {
         }
     });
 }
+
+/**
+ * 删除宿舍楼
+ * 仅管理员
+ * @param dormId 宿舍楼 ID
+ */
+export function delDorm(dormId: number) {
+    return service({
+        url: '/dorm',
+        method: 'DELETE',
+        data: [dormId]
+    });
+}

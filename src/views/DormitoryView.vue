@@ -2,8 +2,8 @@
 import { onMounted, ref, reactive } from 'vue';
 import { Dorm } from '../models/Dorm';
 import { Pager } from '../models/Pager';
-import { addDormAdmins, delDormAdmins, dormByPage, updateDorm } from '../api/dormApi';
-import { errorMsg, successMsg } from '../utils/MyUtils';
+import { addDormAdmins, delDorm, delDormAdmins, dormByPage, updateDorm } from '../api/dormApi';
+import { errorMsg, successMsg, warningConfirmBox } from '../utils/MyUtils';
 import { GenderEnum } from '../models/GenderEnum';
 import { useRouter } from 'vue-router';
 import { RouterViews } from '../router/RouterViews';
@@ -171,6 +171,28 @@ const onDialogEditDormSaveClick = () => {
     // 修改宿舍失败
     errorMsg(err);
   });
+}
+
+/**
+ * 宿舍楼表删除按钮点击事件
+ * @param dorm 
+ */
+const onDormTableDelClick = (dorm: Dorm) => {
+  warningConfirmBox('确定要删除 [' + dorm.name + '] 宿舍楼吗，此操作不可逆！').then(() => {
+    delDorm(dorm.dormitoryId).then(() => {
+      // 删除成功
+      successMsg('删除成功');
+      refreshDorms();
+    }).catch((err) => {
+      errorMsg(err);
+    });
+  });
+}
+
+/**
+ * 工具栏“添加宿舍楼”按钮点击事件
+ */
+const onToolBarAddDormClick = () => {
 
 }
 </script>
@@ -179,9 +201,12 @@ const onDialogEditDormSaveClick = () => {
   <div class="container">
     <el-tabs stretch>
       <el-tab-pane label="宿舍楼">
+        <div class="button-group">
+          <el-button plain type="primary" @click="onToolBarAddDormClick">添加宿舍楼</el-button>
+        </div>
         <div class="table">
           <!-- 表格，显示宿舍楼 -->
-          <el-table class="table" :data="pages?.data" border height="75vh"
+          <el-table class="table" :data="pages?.data" border height="70vh"
             :default-sort="{ prop: 'birth', order: 'descending' }">
             <el-table-column fixed prop="name" label="宿舍楼名" width="120" />
             <el-table-column fixed prop="totalBeds" label="总床位" width="120" />
@@ -211,7 +236,7 @@ const onDialogEditDormSaveClick = () => {
               <template #default=scope>
                 <el-button link type="primary" size="small" @click="onDormTableEditClick(scope.row)">编辑</el-button>
                 <el-button link type="primary" size="small">查看房间</el-button>
-                <el-button link type="danger" size="small">删除</el-button>
+                <el-button link type="danger" size="small" @click="onDormTableDelClick(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -244,7 +269,7 @@ const onDialogEditDormSaveClick = () => {
       </el-tab-pane>
 
       <el-tab-pane label="宿舍房间">
-        12333
+        宿舍房间
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -253,7 +278,6 @@ const onDialogEditDormSaveClick = () => {
 <style scoped lang="scss">
 .container {
   width: 100%;
-  height: 100%;
 }
 
 .pagination-div {
@@ -263,5 +287,9 @@ const onDialogEditDormSaveClick = () => {
 .pagination {
   display: flex;
   justify-content: center;
+}
+
+.button-group {
+  margin-bottom: 10px;
 }
 </style>

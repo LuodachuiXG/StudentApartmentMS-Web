@@ -72,7 +72,7 @@ const asideMenus = [
   {
     name: '留言',
     routerName: RouterViews.MSG_BOARD,
-    icon: 'User',
+    icon: 'Message',
     role: null
   },
 ];
@@ -251,118 +251,119 @@ const clearDialogUpdatePasswordForm = () => {
 
 <template>
   <div class="main-box">
-    <!-- 布局容器 -->
-    <el-container class="container" direction="vertical">
-      <!-- 布局 Header -->
-      <el-header class="head">
-        <el-row>
-          <el-col :span="18">
-            <p class="title">学生公寓管理系统</p>
-          </el-col>
-          <el-col :span="6">
-            <div class="head-right">
-              <el-button :icon="isDark ? 'Moon' : 'Sunny'" circle @click="toggleDark()"></el-button>
-              <el-dropdown class="user" trigger="click">
-                <el-button v-if="user !== null" icon="User" round>
-                  {{ user.name }}
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item icon="Edit" @click="dialogUpdatePasswordVisible = true">修改密码
-                    </el-dropdown-item>
-                    <el-dropdown-item icon="User" @click="onUserInfo()">个人信息</el-dropdown-item>
-                    <el-dropdown-item v-if="user?.role === RoleEnum.ADMIN" icon="Delete" divided @click="onDelUser()">注销帐号
-                    </el-dropdown-item>
-                    <el-dropdown-item icon="Close" divided @click="onLogout()">注销登录</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </el-col>
-        </el-row>
-      </el-header>
-      <el-container>
-        <!-- 布局 Aside -->
-        <el-aside v-if="user !== null" class="aside" width="250px">
-          <div class="button-container">
-            <div class="button-div" v-for="(menu, i) in asideMenus"
-              :style="(menu.role === null || (menu.role === user.role)) ? '' : 'display:none;'">
-              <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
-                :text="asideMenuIndex !== i" :icon="menu.icon" @click="onAsideMenuChange(i)" auto-insert-space>{{ menu.name
-                }}
+
+  </div><!-- 布局容器 -->
+  <el-container class="container" direction="vertical">
+    <!-- 布局 Header -->
+    <el-header class="head">
+      <el-row>
+        <el-col :span="18">
+          <p class="title">学生公寓管理系统</p>
+        </el-col>
+        <el-col :span="6">
+          <div class="head-right">
+            <el-button :icon="isDark ? 'Moon' : 'Sunny'" circle @click="toggleDark()"></el-button>
+            <el-dropdown class="user" trigger="click">
+              <el-button v-if="user !== null" icon="User" round>
+                {{ user.name }}
               </el-button>
-            </div>
-
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item icon="Edit" @click="dialogUpdatePasswordVisible = true">修改密码
+                  </el-dropdown-item>
+                  <el-dropdown-item icon="User" @click="onUserInfo()">个人信息</el-dropdown-item>
+                  <el-dropdown-item v-if="user?.role === RoleEnum.ADMIN" icon="Delete" divided @click="onDelUser()">注销帐号
+                  </el-dropdown-item>
+                  <el-dropdown-item icon="Close" divided @click="onLogout()">注销登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
-        </el-aside>
-        <!-- 布局 Main -->
-        <el-main class="main">
-          <!-- openUpdatePasswordDialog 为 LoginView 子组件事件，用于打开修改密码对话框 -->
-          <router-view @openUpdatePasswordDialog="dialogUpdatePasswordVisible = true"></router-view>
-        </el-main>
-      </el-container>
+        </el-col>
+      </el-row>
+    </el-header>
+    <el-container>
+      <!-- 布局 Aside -->
+      <el-aside v-if="user !== null" class="aside" width="250px">
+        <div class="button-container">
+          <div class="button-div" v-for="(menu, i) in asideMenus"
+            :style="(menu.role === null || (menu.role === user.role)) ? '' : 'display:none;'">
+            <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
+              :text="asideMenuIndex !== i" :icon="menu.icon" @click="onAsideMenuChange(i)" auto-insert-space>{{ menu.name
+              }}
+            </el-button>
+          </div>
+
+        </div>
+      </el-aside>
+      <!-- 布局 Main -->
+      <el-main class="main">
+        <!-- openUpdatePasswordDialog 为 LoginView 子组件事件，用于打开修改密码对话框 -->
+        <router-view @openUpdatePasswordDialog="dialogUpdatePasswordVisible = true"></router-view>
+      </el-main>
     </el-container>
+  </el-container>
 
 
-    <!-- 个人信息对话框 -->
-    <el-dialog v-model="dialogUserInfoVisible" draggable title="个人信息">
-      <el-form class="register-form" :model="dialogUserInfoForm" label-position="left" label-width="80px">
-        <el-form-item label="姓名" required>
-          <el-input v-model="dialogUserInfoForm.name" placeholder="姓名"></el-input>
-        </el-form-item>
-        <el-form-item :label="user?.role === RoleEnum.ADMIN ? '工号' : '学号'" required>
-          <el-input v-model="dialogUserInfoForm.id" :placeholder="user?.role === RoleEnum.ADMIN ? '工号' : '学号'"></el-input>
-        </el-form-item>
-        <el-form-item label="手机号" required>
-          <el-input v-model="dialogUserInfoForm.phone" placeholder="手机号"></el-input>
-        </el-form-item>
-        <el-form-item label="性别" required>
-          <el-radio-group v-model="dialogUserInfoForm.gender">
-            <el-radio label="男" />
-            <el-radio label="女" />
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="出生日期" required>
-          <el-date-picker v-model="dialogUserInfoForm.birth" placeholder="选择出生日期" style="width: 100%;" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogUserInfoVisible = false">取消</el-button>
-          <el-button type="primary" @click="onDialogUserInfoSaveClick">保存</el-button>
-        </span>
-      </template>
-    </el-dialog>
+  <!-- 个人信息对话框 -->
+  <el-dialog v-model="dialogUserInfoVisible" draggable title="个人信息">
+    <el-form class="register-form" :model="dialogUserInfoForm" label-position="left" label-width="80px">
+      <el-form-item label="姓名" required>
+        <el-input v-model="dialogUserInfoForm.name" placeholder="姓名"></el-input>
+      </el-form-item>
+      <el-form-item :label="user?.role === RoleEnum.ADMIN ? '工号' : '学号'" required>
+        <el-input v-model="dialogUserInfoForm.id" :placeholder="user?.role === RoleEnum.ADMIN ? '工号' : '学号'"></el-input>
+      </el-form-item>
+      <el-form-item label="手机号" required>
+        <el-input v-model="dialogUserInfoForm.phone" placeholder="手机号"></el-input>
+      </el-form-item>
+      <el-form-item label="性别" required>
+        <el-radio-group v-model="dialogUserInfoForm.gender">
+          <el-radio label="男" />
+          <el-radio label="女" />
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="出生日期" required>
+        <el-date-picker v-model="dialogUserInfoForm.birth" placeholder="选择出生日期" style="width: 100%;" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogUserInfoVisible = false">取消</el-button>
+        <el-button type="primary" @click="onDialogUserInfoSaveClick">保存</el-button>
+      </span>
+    </template>
+  </el-dialog>
 
 
-    <!-- 修改密码对话框 -->
-    <el-dialog v-model="dialogUpdatePasswordVisible" draggable title="修改密码">
-      <el-form class="register-form" :model="dialogUpdatePasswordForm" label-position="left" label-width="100px">
-        <el-form-item label="旧密码" required>
-          <el-input v-model="dialogUpdatePasswordForm.oldPwd" placeholder="旧密码" show-password></el-input>
-        </el-form-item>
-        <el-form-item label="新密码" required>
-          <el-input v-model="dialogUpdatePasswordForm.newPwd" placeholder="新密码" show-password></el-input>
-        </el-form-item>
-        <el-form-item label="重复新密码" required>
-          <el-input v-model="dialogUpdatePasswordForm.newPwdAgain" placeholder="重复新密码" show-password></el-input>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogUpdatePasswordVisible = false">取消</el-button>
-          <el-button type="primary" @click="onDialogUpdatePasswordSaveClick">保存</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
+  <!-- 修改密码对话框 -->
+  <el-dialog v-model="dialogUpdatePasswordVisible" draggable title="修改密码">
+    <el-form class="register-form" :model="dialogUpdatePasswordForm" label-position="left" label-width="100px">
+      <el-form-item label="旧密码" required>
+        <el-input v-model="dialogUpdatePasswordForm.oldPwd" placeholder="旧密码" show-password></el-input>
+      </el-form-item>
+      <el-form-item label="新密码" required>
+        <el-input v-model="dialogUpdatePasswordForm.newPwd" placeholder="新密码" show-password></el-input>
+      </el-form-item>
+      <el-form-item label="重复新密码" required>
+        <el-input v-model="dialogUpdatePasswordForm.newPwdAgain" placeholder="重复新密码" show-password></el-input>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogUpdatePasswordVisible = false">取消</el-button>
+        <el-button type="primary" @click="onDialogUpdatePasswordSaveClick">保存</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">
-.main-box,
 .container {
   height: 100%;
 }
+
+
 
 .head {
   width: 100%;
@@ -417,5 +418,6 @@ const clearDialogUpdatePasswordForm = () => {
 
 .main {
   padding: 10px;
+  height: calc(100vh - 70px);
 }
 </style>

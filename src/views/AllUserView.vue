@@ -368,7 +368,7 @@ const onDialogSearchResettingClick = () => {
     </div>
     <div class="table">
       <!-- 表格，显示用户 -->
-      <el-table class="table" :data="pages?.data" border height="75vh"
+      <el-table class="table" :data="pages?.data" border height="77vh"
         :default-sort="{ prop: 'birth', order: 'descending' }" @selection-change="onTableSelectChange">
         <el-table-column type="selection" width="55" />
         <el-table-column fixed prop="id" label="工号（学号）" width="120" />
