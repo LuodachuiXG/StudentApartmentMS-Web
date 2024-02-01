@@ -154,7 +154,7 @@ const onUserInfo = () => {
   dialogUserInfoForm.name = user.value!!.name;
   dialogUserInfoForm.id = user.value!!.id;
   dialogUserInfoForm.phone = user.value!!.phone;
-  dialogUserInfoForm.gender = user.value!!.gender === 'MALE' ? '男' : '女';
+  dialogUserInfoForm.gender = user.value!!.gender === GenderEnum.MALE ? '男' : '女';
   dialogUserInfoForm.birth = user.value!!.birth;
 
   // 打开对话框

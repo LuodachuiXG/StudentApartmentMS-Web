@@ -132,7 +132,7 @@ const onDialogEditDormSaveClick = () => {
   }
 
   // 修改宿舍
-  updateDorm(dialogEditDormForm.dormitoryId, dialogEditDormForm.name).then((res) => {
+  updateDorm(dialogEditDormForm.dormitoryId, dialogEditDormForm.name).then(() => {
     // 修改宿舍成功
     // 判断是否需要修改宿舍管理员
     if (dialogEditDormForm.isAdmin !== dialogEditDormForm.isAdminValue) {
@@ -184,6 +184,7 @@ const onDialogEditDormSaveClick = () => {
           <el-table class="table" :data="pages?.data" border height="75vh"
             :default-sort="{ prop: 'birth', order: 'descending' }">
             <el-table-column fixed prop="name" label="宿舍楼名" width="120" />
+            <el-table-column fixed prop="totalBeds" label="总床位" width="120" />
             <el-table-column fixed prop="headCount" label="入住人数" width="90" />
             <el-table-column fixed="right" label="宿舍管理员">
               <template #default="scope">

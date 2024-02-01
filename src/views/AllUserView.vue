@@ -120,7 +120,7 @@ const onTableRoleFormat = (_row: number, _column: number, cellValue: string, _in
  * 格式化表格性别字段，格式化为 '男' 或 '女'
  */
 const onTableGenderFormat = (_row: number, _column: number, cellValue: string, _index: number) => {
-  if (cellValue === 'MALE') {
+  if (cellValue === GenderEnum.MALE) {
     return '男';
   } else {
     return '女';
@@ -204,7 +204,7 @@ const onTableColEditClick = (user: User) => {
   dialogstudentForm.name = user.name;
   dialogstudentForm.id = user.id;
   dialogstudentForm.phone = user.phone;
-  dialogstudentForm.gender = user.gender === 'MALE' ? '男' : '女';
+  dialogstudentForm.gender = user.gender === GenderEnum.MALE ? '男' : '女';
   dialogstudentForm.birth = user.birth;
 
   // 设置当前为编辑学生模式
