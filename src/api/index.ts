@@ -1,8 +1,8 @@
-import axios, { AxiosRequestHeaders } from "axios";
-import { StoreEnum } from "../models/StoreEnum";
-import { User } from "../models/User";
-import { RouterViews } from "../router/RouterViews";
-import { router } from "../router/index";
+import axios, {AxiosRequestHeaders} from "axios";
+import {StoreEnum} from "../models/StoreEnum";
+import {User} from "../models/User";
+import {RouterViews} from "../router/RouterViews";
+import {router} from "../router";
 
 
 // 创建 axios 实例

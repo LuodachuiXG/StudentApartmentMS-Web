@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { login, register } from "../api/userApi.ts";
-import { LoginModeEnum } from "../models/LoginModeEnum.ts";
-import { StoreEnum } from "../models/StoreEnum.ts";
-import { useRouter } from "vue-router";
-import { errorMsg, formatDate, successMsg } from "../utils/MyUtils";
-import { GenderEnum } from "../models/GenderEnum";
-import { User } from "../models/User";
-import { RoleEnum } from "../models/RoleEnum";
-import { RouterViews } from "../router/RouterViews";
+import {ref} from "vue";
+import {login, register} from "../api/userApi.ts";
+import {LoginModeEnum} from "../models/LoginModeEnum.ts";
+import {StoreEnum} from "../models/StoreEnum.ts";
+import {useRouter} from "vue-router";
+import {errorMsg, formatDate, successMsg} from "../utils/MyUtils";
+import {GenderEnum} from "../models/GenderEnum";
+import {User} from "../models/User";
+import {RoleEnum} from "../models/RoleEnum";
+import {RouterViews} from "../router/RouterViews";
 
 // 定义自定义事件，用于在父页 App.vue 中打开修改密码对话框
 const emit = defineEmits([
@@ -41,7 +41,6 @@ const rGender = ref('男');
 const rBirth = ref('');
 
 
-
 /**
  * 登录用户
  */
@@ -59,7 +58,7 @@ const onLogin = () => {
     // 根据上次登录时间是否为空和是否是学生，来弹出消息框让学生修改密码
     // 因为学生默认密码是手机号后 6 位，确保安全需要修改默认密码
     if ((user.lastLogin === null || user.lastLogin.length === 0) &&
-      user.role === RoleEnum.STUDENT) {
+        user.role === RoleEnum.STUDENT) {
       emit('openUpdatePasswordDialog');
       // 第一次登录，并且是学生
       errorMsg('为了确保账号安全，请立即修改密码');
@@ -76,8 +75,8 @@ const onLogin = () => {
  */
 const onRegister = () => {
   if (rName.value.length === 0 || rId.value.length === 0 || rPwd.value.length === 0 ||
-    rPwdAgain.value.length === 0 || rPhone.value.length === 0 ||
-    rBirth.value === null || rBirth.value.length === 0) {
+      rPwdAgain.value.length === 0 || rPhone.value.length === 0 ||
+      rBirth.value === null || rBirth.value.length === 0) {
     errorMsg('请将信息填写完整');
     return;
   }
@@ -88,16 +87,16 @@ const onRegister = () => {
   }
 
   register(rName.value, rId.value, rPwd.value, rPhone.value,
-    rGender.value === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
-    formatDate(new Date(rBirth.value))).then(() => {
-      // 注册成功，清空注册信息
-      clearRegisterValue();
-      // 跳转登录页
-      currentMode.value = LoginModeEnum.LOGIN;
-      successMsg('注册成功');
-    }).catch((err) => {
-      errorMsg(err);
-    });
+      rGender.value === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+      formatDate(new Date(rBirth.value))).then(() => {
+    // 注册成功，清空注册信息
+    clearRegisterValue();
+    // 跳转登录页
+    currentMode.value = LoginModeEnum.LOGIN;
+    successMsg('注册成功');
+  }).catch((err) => {
+    errorMsg(err);
+  });
 }
 
 /**
@@ -125,7 +124,7 @@ const clearRegisterValue = () => {
           <div class="inputs">
             <el-input v-model="id" placeholder="请输入工号（学号）"></el-input>
             <el-input style="margin-top: 20px;" show-password v-model="password" placeholder="密码"
-              type="password"></el-input>
+                      type="password"></el-input>
           </div>
           <div class="options">
             <el-text class="option" type="primary" @click="currentMode = LoginModeEnum.REGISTER">管理员注册</el-text>
@@ -153,12 +152,12 @@ const clearRegisterValue = () => {
             </el-form-item>
             <el-form-item label="性别" required>
               <el-radio-group v-model="rGender">
-                <el-radio label="男" />
-                <el-radio label="女" />
+                <el-radio label="男"/>
+                <el-radio label="女"/>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="出生日期" required>
-              <el-date-picker v-model="rBirth" placeholder="选择出生日期" style="width: 100%;" />
+              <el-date-picker v-model="rBirth" placeholder="选择出生日期" style="width: 100%;"/>
             </el-form-item>
           </el-form>
 

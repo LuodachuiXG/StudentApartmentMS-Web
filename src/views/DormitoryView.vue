@@ -1,31 +1,44 @@
 <script setup lang="ts">
-import { onMounted, ref, reactive } from 'vue';
-import { Dorm } from '../models/Dorm';
-import { Pager } from '../models/Pager';
-import { addDorm, addDormAdmins, delDorm, delDormAdmins, dormByPage, updateDorm } from '../api/dormApi';
-import { errorMsg, successMsg, warningConfirmBox } from '../utils/MyUtils';
-import { GenderEnum } from '../models/GenderEnum';
-import { useRouter } from 'vue-router';
-import { RouterViews } from '../router/RouterViews';
-import { StoreEnum } from '../models/StoreEnum';
-import { User } from '../models/User';
+import {onMounted, ref, reactive} from 'vue';
+import {Dorm} from '../models/Dorm';
+import {Pager} from '../models/Pager';
+import {
+  addDorm,
+  addDormAdmins,
+  allDorms,
+  delDorm,
+  delDormAdmins,
+  dormsByPage,
+  updateDorm,
+  roomsByPage, addRooms
+} from '../api/dormApi';
+import {errorMsg, successMsg, warningConfirmBox} from '../utils/MyUtils';
+import {GenderEnum} from '../models/GenderEnum';
+import {useRouter} from 'vue-router';
+import {RouterViews} from '../router/RouterViews';
+import {StoreEnum} from '../models/StoreEnum';
+import {User} from '../models/User';
+import {Room} from '../models/Room';
 
 
 const router = useRouter();
 
-// 存储宿舍分页数据
-const pages = ref<Pager<Dorm> | null>(null);
+// 选项卡当前选择项
+const tabPaneCurrent = ref('0');
 
-// 分页器每页条数
-const dormsPageSize = ref(10);
+// “宿舍楼”选项卡中存储宿舍分页数据
+const tabDormPages = ref<Pager<Dorm> | null>(null);
 
-// 分页器当前页数
-const dormsCurrentPage = ref(1);
+// “宿舍楼”选项卡中分页器每页条数
+const tabDormsPageSize = ref(10);
+
+// “宿舍楼”选项卡中分页器当前页数
+const tabDormsCurrentPage = ref(1);
 
 // 编辑宿舍对话框是否显示
-const dialogEditDormVisible = ref(false);
+const tabDormDialogEditDormVisible = ref(false);
 // 编辑宿舍对话框表单
-const dialogEditDormForm = reactive({
+const tabDormDialogEditDormForm = reactive({
   // 宿舍楼 ID
   dormitoryId: -1,
   // 宿舍楼名
@@ -38,11 +51,38 @@ const dialogEditDormForm = reactive({
 
 
 // 添加宿舍对话框是否显示
-const dialogAddDormVisible = ref(false);
+const tabDormDialogAddDormVisible = ref(false);
 // 添加宿舍对话框表单
-const dialogAddDormForm = reactive({
+const tabDormDialogAddDormForm = reactive({
   // 宿舍楼名
   name: ''
+});
+
+
+// “宿舍房间”选项卡中当前选择的宿舍楼
+const tabRoomCurrentSelectDorm = ref<number | null>();
+
+// “宿舍房间”选项卡中存储所有宿舍楼（用于工具栏的宿舍选择器）
+const tabRoomDorms = ref<Array<Dorm>>();
+
+// “宿舍房间”选项卡中分页存储当前宿舍所有房间
+const tabRoomPages = ref<Pager<Room> | null>(null);
+
+// “宿舍房间”选项卡中分页器每页条数
+const tabRoomsPageSize = ref(10);
+
+// “宿舍房间”选项卡中分页器当前页数
+const tabRoomsCurrentPage = ref(1);
+
+// 添加房间对话框是否显示
+const tabRoomDialogAddRoomVisible = ref(false);
+// 添加房间对话框表单
+const tabRoomDialogAddRoomForm = reactive({
+  // 宿舍楼 ID
+  dormId: '',
+  // 房间名
+  roomName: '',
+  totalBeds: 0,
 });
 
 
@@ -51,38 +91,103 @@ const dialogAddDormForm = reactive({
  */
 onMounted(() => {
   // 刷新宿舍信息
-  refreshDorms();
+  tabDormRefreshDorms();
 });
 
 /**
- * 刷新宿舍信息
+ * “宿舍楼”选项卡中刷新宿舍信息
  */
-const refreshDorms = () => {
+const tabDormRefreshDorms = () => {
   // 获取宿舍
-  dormByPage(dormsCurrentPage.value, dormsPageSize.value).then((res) => {
+  dormsByPage(tabDormsCurrentPage.value, tabDormsPageSize.value).then((res) => {
     // 请求成功
-    pages.value = res.data;
+    tabDormPages.value = res.data;
+  }).catch((err) => {
+    errorMsg(err);
+  });
+}
+
+
+// “宿舍房间”选项卡中获取所有宿舍
+const tabRoomRefreshAllDorms = () => {
+  allDorms().then((res) => {
+    // 获取宿舍成功
+    tabRoomDorms.value = res.data;
+  }).catch((err) => {
+    // 获取宿舍失败
+    errorMsg(err);
+  });
+}
+
+// “宿舍房间”选项卡中根据宿舍楼 ID 获取房间
+const tabRoomRefreshRooms = () => {
+  // 获取宿舍房间
+  roomsByPage(tabRoomCurrentSelectDorm.value!!, tabRoomsCurrentPage.value, tabRoomsPageSize.value).then((res) => {
+    // 请求成功
+    tabRoomPages.value = res.data;
   }).catch((err) => {
     errorMsg(err);
   });
 }
 
 /**
- * 宿舍楼表格当前页数改变事件
+ * 选项卡切换事件
+ * @param name 选项卡名
  */
-const onDormTableCurrentPageChange = (value: number) => {
-  dormsCurrentPage.value = value;
-  // 刷新宿舍楼表格数据
-  refreshDorms();
+const onTabChange = (name: string) => {
+  switch (name) {
+    case '0':
+      // “宿舍楼”选项卡
+      // 刷新所有宿舍
+      tabDormRefreshDorms();
+      break;
+    case '1':
+      // “宿舍房间”选项卡
+      // 刷新宿舍选择器的数据
+      tabRoomRefreshAllDorms();
+      if (tabRoomCurrentSelectDorm.value !== undefined &&
+          tabRoomCurrentSelectDorm.value !== null) {
+        // 如果宿舍选择器的数据不为空，就刷新当前宿舍的房间
+        tabRoomRefreshRooms();
+      }
+      break;
+  }
 }
 
 /**
- * 宿舍楼表格每页条数改变事件
+ * “宿舍楼”选项卡宿舍楼表格当前页数改变事件
+ */
+const onDormTableCurrentPageChange = (value: number) => {
+  tabDormsCurrentPage.value = value;
+  // 刷新宿舍楼表格数据
+  tabDormRefreshDorms();
+}
+
+/**
+ * “宿舍楼”选项卡宿舍楼表格每页条数改变事件
  */
 const onDormTableSizeChangChange = (value: number) => {
-  dormsPageSize.value = value;
+  tabDormsPageSize.value = value;
   // 刷新宿舍楼表格数据
-  refreshDorms();
+  tabDormRefreshDorms();
+}
+
+/**
+ * “宿舍房间”选项卡宿舍楼表格当前页数改变事件
+ */
+const onRoomTableCurrentPageChange = (value: number) => {
+  tabRoomsCurrentPage.value = value;
+  // 刷新宿舍房间表格数据
+  tabRoomRefreshRooms();
+}
+
+/**
+ * “宿舍房间”选项卡宿舍楼表格每页条数改变事件
+ */
+const onRoomTableSizeChangChange = (value: number) => {
+  tabRoomsPageSize.value = value;
+  // 刷新宿舍房间表格数据
+  tabRoomRefreshRooms();
 }
 
 /**
@@ -103,17 +208,17 @@ const onDormTableUserTagClick = (id: number) => {
  * 清空修改宿舍对话框的表单
  */
 const clearDialogEditDormForm = () => {
-  dialogEditDormForm.dormitoryId = -1;
-  dialogEditDormForm.isAdmin = false;
-  dialogEditDormForm.name = '';
-  dialogEditDormForm.isAdminValue = false;
+  tabDormDialogEditDormForm.dormitoryId = -1;
+  tabDormDialogEditDormForm.isAdmin = false;
+  tabDormDialogEditDormForm.name = '';
+  tabDormDialogEditDormForm.isAdminValue = false;
 }
 
 /**
  * 清空添加宿舍对话框的表单
  */
 const clearDialogAddDormForm = () => {
-  dialogAddDormForm.name = '';
+  tabDormDialogAddDormForm.name = '';
 }
 
 /**
@@ -123,55 +228,92 @@ const clearDialogAddDormForm = () => {
 const onDormTableEditClick = (dorm: Dorm) => {
   clearDialogEditDormForm();
   // 将当前选择编辑的宿舍楼信息写入宿舍楼编辑对话框表单
-  dialogEditDormForm.dormitoryId = dorm.dormitoryId;
-  dialogEditDormForm.name = dorm.name;
+  tabDormDialogEditDormForm.dormitoryId = dorm.dormitoryId;
+  tabDormDialogEditDormForm.name = dorm.name;
   const currentLoginUser = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
   // 检查当前登录用户是否是该宿舍的管理员
   dorm.admins.forEach((user) => {
     if (user.userId === currentLoginUser.userId) {
-      dialogEditDormForm.isAdmin = true;
-      dialogEditDormForm.isAdminValue = true;
+      tabDormDialogEditDormForm.isAdmin = true;
+      tabDormDialogEditDormForm.isAdminValue = true;
       return;
     }
   });
   // 显示宿舍楼编辑对话框
-  dialogEditDormVisible.value = true;
+  tabDormDialogEditDormVisible.value = true;
 }
+
+/**
+ * 宿舍表格“查看房间”按钮点击事件
+ * @param dorm 宿舍楼实体类
+ */
+const onDormTableViewRoomClick = (dorm: Dorm) => {
+  // 先刷新“宿舍房间”选项卡工具栏宿舍选择器的数据
+  tabRoomRefreshAllDorms();
+  // 将 Tab Pane 切换到“宿舍房间”选项卡
+  tabPaneCurrent.value = '1';
+  // 将当前点击宿舍 ID 设为“宿舍房间”选项卡工具栏宿舍选择器的当前选项
+  tabRoomCurrentSelectDorm.value = dorm.dormitoryId;
+  // 刷新“宿舍房间”选项卡选择的宿舍的房间
+  tabRoomRefreshRooms();
+}
+
+/**
+ * 宿舍楼表删除按钮点击事件
+ * @param dorm
+ */
+const onDormTableDelClick = (dorm: Dorm) => {
+  warningConfirmBox('确定要删除 [' + dorm.name + '] 宿舍楼吗，此操作不可逆！').then(() => {
+    delDorm(dorm.dormitoryId).then(() => {
+      // 删除成功
+      successMsg('删除成功');
+      tabDormRefreshDorms();
+
+      // 如果“宿舍房间”选项卡宿舍选择器选择的是当前被删除的宿舍，清空选择的数据
+      if (tabRoomCurrentSelectDorm.value === dorm.dormitoryId) {
+        tabRoomCurrentSelectDorm.value = null;
+      }
+    }).catch((err) => {
+      errorMsg(err);
+    });
+  });
+}
+
 
 /**
  * 编辑宿舍楼对话框保存按钮点击事件
  */
 const onDialogEditDormSaveClick = () => {
-  if (dialogEditDormForm.name.length === 0) {
+  if (tabDormDialogEditDormForm.name.length === 0) {
     errorMsg('请将内容填写完整');
     return;
   }
 
   // 修改宿舍
-  updateDorm(dialogEditDormForm.dormitoryId, dialogEditDormForm.name).then(() => {
+  updateDorm(tabDormDialogEditDormForm.dormitoryId, tabDormDialogEditDormForm.name).then(() => {
     // 修改宿舍成功
     // 判断是否需要修改宿舍管理员
-    if (dialogEditDormForm.isAdmin !== dialogEditDormForm.isAdminValue) {
+    if (tabDormDialogEditDormForm.isAdmin !== tabDormDialogEditDormForm.isAdminValue) {
       // 编辑宿舍对话框中“管理该宿舍”按钮值被修改
       const currentLoginUser = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
-      if (dialogEditDormForm.isAdminValue) {
+      if (tabDormDialogEditDormForm.isAdminValue) {
         // 添加宿舍管理员
-        addDormAdmins(dialogEditDormForm.dormitoryId, [currentLoginUser]).then(() => {
+        addDormAdmins(tabDormDialogEditDormForm.dormitoryId, [currentLoginUser]).then(() => {
           // 添加宿舍管理员成功
           successMsg('修改成功');
-          dialogEditDormVisible.value = false;
-          refreshDorms();
+          tabDormDialogEditDormVisible.value = false;
+          tabDormRefreshDorms();
         }).catch((err) => {
           // 添加宿舍管理员失败
           errorMsg(err);
         });
       } else {
         // 删除宿舍管理员
-        delDormAdmins(dialogEditDormForm.dormitoryId, [currentLoginUser]).then(() => {
+        delDormAdmins(tabDormDialogEditDormForm.dormitoryId, [currentLoginUser]).then(() => {
           // 添加宿舍管理员成功
           successMsg('修改成功');
-          dialogEditDormVisible.value = false;
-          refreshDorms();
+          tabDormDialogEditDormVisible.value = false;
+          tabDormRefreshDorms();
         }).catch((err) => {
           // 删除宿舍管理员失败
           errorMsg(err);
@@ -180,8 +322,8 @@ const onDialogEditDormSaveClick = () => {
     } else {
       // 编辑宿舍对话框中“管理该宿舍”按钮值没有被修改
       successMsg('修改成功');
-      dialogEditDormVisible.value = false;
-      refreshDorms();
+      tabDormDialogEditDormVisible.value = false;
+      tabDormRefreshDorms();
     }
   }).catch((err) => {
     // 修改宿舍失败
@@ -194,65 +336,226 @@ const onDialogEditDormSaveClick = () => {
  */
 const onDialogAddDormSaveClick = () => {
   // 添加宿舍楼
-  addDorm(dialogAddDormForm.name).then(() => {
+  addDorm(tabDormDialogAddDormForm.name).then(() => {
     // 添加成功
     successMsg('添加成功');
     // 刷新宿舍楼
-    refreshDorms();
+    tabDormRefreshDorms();
     // 清空添加宿舍楼对话框表单
     clearDialogAddDormForm();
     // 关闭添加宿舍楼对话框
-    dialogAddDormVisible.value = false;
+    tabDormDialogAddDormVisible.value = false;
+  }).catch((err) => {
+    errorMsg(err);
+  });
+}
+
+
+/**
+ * “宿舍楼”选项卡，工具栏“添加宿舍楼”按钮点击事件
+ */
+const onTabDormToolBarAddDormClick = () => {
+  tabDormDialogAddDormVisible.value = true;
+}
+
+
+/**
+ * “宿舍房间”选项卡，宿舍选择框选项改变事件
+ */
+const onTabRoomDormSelectChange = () => {
+  tabRoomRefreshRooms();
+}
+
+/**
+ * “宿舍房间”选项卡，工具栏“添加房间”按钮点击事件
+ */
+const onTabRoomToolBarAddRoomClick = () => {
+  tabRoomDialogAddRoomVisible.value = true;
+}
+
+/**
+ * 添加房间对话框“添加”按钮点击事件
+ */
+const onDialogAddRoomSaveClick = () => {
+  if (tabRoomDialogAddRoomForm.dormId.length === 0 ||
+      tabRoomDialogAddRoomForm.roomName.length === 0 ||
+      tabRoomDialogAddRoomForm.totalBeds <= 0) {
+    errorMsg('请将信息填写完整');
+    return;
+  }
+
+  let rooms: Array<Room>;
+  if (tabRoomDialogAddRoomForm.roomName.indexOf(',') === -1) {
+    // 只有一个房间名
+    rooms = [{
+      dormitoryId: Number(tabRoomDialogAddRoomForm.dormId),
+      name: tabRoomDialogAddRoomForm.roomName,
+      totalBeds: tabRoomDialogAddRoomForm.totalBeds,
+      // 下面两个参数占位用，服务器不处理
+      roomId: -1,
+      headCount: -1
+    }];
+  } else {
+    // 有多个宿舍名
+    let splitRoomNames = tabRoomDialogAddRoomForm.roomName.split(',');
+    rooms = new Array<Room>();
+    // 将每个宿舍加入 rooms
+    splitRoomNames.forEach((roomName) => {
+      if (roomName.length !== 0) {
+        rooms.push({
+          dormitoryId: Number(tabRoomDialogAddRoomForm.dormId),
+          name: roomName,
+          totalBeds: tabRoomDialogAddRoomForm.totalBeds,
+          // 下面两个参数占位用，服务器不处理
+          roomId: -1,
+          headCount: -1
+        })
+      }
+    });
+  }
+
+  // 添加房间
+  addRooms(rooms).then(() => {
+    // 添加成功
+    successMsg('添加成功')
+    // 清空添加房间对话框表单
+    clearDialogAddRoomFormat();
+    // 关闭添加房间对话框
+    tabRoomDialogAddRoomVisible.value = false;
+
+    // 如果当前选择的宿舍楼不为空，就刷新当前选择的宿舍楼的房间
+    if (tabRoomCurrentSelectDorm.value != null) {
+      tabRoomRefreshRooms();
+    }
   }).catch((err) => {
     errorMsg(err);
   });
 }
 
 /**
- * 宿舍楼表删除按钮点击事件
- * @param dorm 
+ * 清空添加房间对话框表单
  */
-const onDormTableDelClick = (dorm: Dorm) => {
-  warningConfirmBox('确定要删除 [' + dorm.name + '] 宿舍楼吗，此操作不可逆！').then(() => {
-    delDorm(dorm.dormitoryId).then(() => {
-      // 删除成功
-      successMsg('删除成功');
-      refreshDorms();
-    }).catch((err) => {
-      errorMsg(err);
-    });
-  });
-}
-
-/**
- * 工具栏“添加宿舍楼”按钮点击事件
- */
-const onToolBarAddDormClick = () => {
-  dialogAddDormVisible.value = true;
+const clearDialogAddRoomFormat = () => {
+  tabRoomDialogAddRoomForm.dormId = '';
+  tabRoomDialogAddRoomForm.roomName = '';
 }
 </script>
 
 <template>
   <div class="container">
-    <el-tabs stretch>
+    <el-tabs stretch @tab-change="onTabChange" v-model="tabPaneCurrent">
       <el-tab-pane label="宿舍楼">
         <div class="button-group">
-          <el-button plain type="primary" @click="onToolBarAddDormClick">添加宿舍楼</el-button>
+          <el-button plain type="primary" @click="onTabDormToolBarAddDormClick">添加宿舍楼</el-button>
         </div>
         <div class="table">
           <!-- 表格，显示宿舍楼 -->
-          <el-table class="table" :data="pages?.data" border height="70vh"
-            :default-sort="{ prop: 'birth', order: 'descending' }">
-            <el-table-column fixed prop="name" label="宿舍楼名" width="120" />
-            <el-table-column fixed prop="totalBeds" label="总床位" width="120" />
-            <el-table-column fixed prop="headCount" label="入住人数" width="90" />
+          <el-table class="table" :data="tabDormPages?.data" border height="70vh"
+                    :default-sort="{ prop: 'birth', order: 'descending' }">
+            <el-table-column fixed prop="name" label="宿舍楼名" width="130" sortable/>
+            <el-table-column fixed prop="totalBeds" label="总床位" width="130" sortable/>
+            <el-table-column fixed prop="headCount" label="入住人数" width="130" sortable/>
             <el-table-column fixed="right" label="宿舍管理员">
               <template #default="scope">
                 <div>
                   <el-popover :width="300" :title="user.name" v-for="user in scope.row.admins" :key="user.userId">
                     <template #reference>
-                      <el-tag round @click="onDormTableUserTagClick(user.id)" style="margin-right: 5px; cursor: pointer;"
-                        type="warning">
+                      <el-tag round @click="onDormTableUserTagClick(user.id)"
+                              style="margin-right: 5px; cursor: pointer;"
+                              type="warning">
+                        {{ user.name }}
+                      </el-tag>
+                    </template>
+                    <template #default>
+                      <div class="demo-rich-conent" style="display: flex; gap: 10px; flex-direction: column">
+                        <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
+                        <p>工号：{{ user.id }}</p>
+                        <p>电话：{{ user.phone }}</p>
+                      </div>
+                    </template>
+                  </el-popover>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column fixed="right" label="操作" width="180">
+              <template #default=scope>
+                <el-button link type="primary" size="small" @click="onDormTableEditClick(scope.row)">编辑</el-button>
+                <el-button link type="primary" size="small" @click="onDormTableViewRoomClick(scope.row)">查看房间
+                </el-button>
+                <el-button link type="danger" size="small" @click="onDormTableDelClick(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <!-- 页码组件 -->
+        <div class="pagination-div">
+          <el-pagination class="pagination" :page-size="tabDormPages?.size" layout="total, prev, pager, next, sizes"
+                         :current-page="tabDormsCurrentPage" :total="tabDormPages?.totalData"
+                         @current-change="onDormTableCurrentPageChange" @size-change="onDormTableSizeChangChange"/>
+        </div>
+
+
+        <!-- 修改宿舍对话框 -->
+        <el-dialog v-model="tabDormDialogEditDormVisible" title="编辑宿舍" draggable>
+          <el-form class="register-form" :model="tabDormDialogEditDormForm" label-position="left" label-width="85px">
+            <el-form-item label="宿舍楼名">
+              <el-input v-model="tabDormDialogEditDormForm.name" placeholder="宿舍楼名称"></el-input>
+            </el-form-item>
+            <el-form-item label="管理该宿舍">
+              <el-switch v-model="tabDormDialogEditDormForm.isAdminValue"/>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="tabDormDialogEditDormVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogEditDormSaveClick">保存</el-button>
+            </span>
+          </template>
+        </el-dialog>
+
+
+        <!-- 添加宿舍对话框 -->
+        <el-dialog v-model="tabDormDialogAddDormVisible" title="添加宿舍" draggable>
+          <el-form class="register-form" :model="tabDormDialogAddDormForm" label-position="left" label-width="85px">
+            <el-form-item label="宿舍楼名">
+              <el-input v-model="tabDormDialogAddDormForm.name" placeholder="宿舍楼名称"></el-input>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="tabDormDialogAddDormVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogAddDormSaveClick">添加</el-button>
+            </span>
+          </template>
+        </el-dialog>
+      </el-tab-pane>
+
+
+      <!-- 宿舍房间选项卡 -->
+      <el-tab-pane label="宿舍房间">
+        <div class="button-group">
+          <el-select v-model="tabRoomCurrentSelectDorm" @change="onTabRoomDormSelectChange" placeholder="选择宿舍楼"
+                     style="width: 200px; margin-right: 10px;">
+            <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
+          </el-select>
+          <el-button plain type="primary" @click="onTabRoomToolBarAddRoomClick">添加房间</el-button>
+        </div>
+        <div class="table">
+          <!-- 表格，显示宿舍楼 -->
+          <el-table class="table" :data="tabRoomPages?.data" border height="70vh"
+                    :default-sort="{ prop: 'birth', order: 'descending' }">
+            <el-table-column type="selection" width="55"/>
+            <el-table-column fixed prop="name" label="房间名" width="130"/>
+            <el-table-column fixed prop="totalBeds" label="总床位" width="130"/>
+            <el-table-column fixed prop="headCount" label="入住人数" width="130"/>
+            <el-table-column fixed="right" label="房间住户">
+              <template #default="scope">
+                <div>
+                  <el-popover :width="300" :title="user.name" v-for="user in scope.row.admins" :key="user.userId">
+                    <template #reference>
+                      <el-tag round @click="onDormTableUserTagClick(user.id)"
+                              style="margin-right: 5px; cursor: pointer;"
+                              type="warning">
                         {{ user.name }}
                       </el-tag>
                     </template>
@@ -278,14 +581,41 @@ const onToolBarAddDormClick = () => {
         </div>
         <!-- 页码组件 -->
         <div class="pagination-div">
-          <el-pagination class="pagination" :page-size="pages?.size" layout="total, prev, pager, next, sizes"
-            :current-page="dormsCurrentPage" :total="pages?.totalData" @current-change="onDormTableCurrentPageChange"
-            @size-change="onDormTableSizeChangChange" />
+          <el-pagination class="pagination" :page-size="tabRoomPages?.size" layout="total, prev, pager, next, sizes"
+                         :current-page="tabRoomsCurrentPage" :total="tabRoomPages?.totalData"
+                         @current-change="onRoomTableCurrentPageChange" @size-change="onRoomTableSizeChangChange"/>
         </div>
 
 
+        <!-- 添加宿舍房间对话框 -->
+        <el-dialog v-model="tabRoomDialogAddRoomVisible" title="添加房间" draggable>
+          <el-form class="register-form" :model="tabRoomDialogAddRoomForm" label-position="left" label-width="85px">
+            <el-form-item label="宿舍楼">
+              <el-select v-model="tabRoomDialogAddRoomForm.dormId" placeholder="选择宿舍楼"
+                         style="width: 200px; margin-right: 10px;">
+                <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="房间名">
+              <el-input v-model="tabRoomDialogAddRoomForm.roomName"
+                        placeholder="房间名（多个房间用英文逗号隔开）"></el-input>
+            </el-form-item>
+            <el-form-item label="房间床位">
+              <el-input v-model="tabRoomDialogAddRoomForm.totalBeds" placeholder="房间可用床位"
+                        type="number"></el-input>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="tabRoomDialogAddRoomVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogAddRoomSaveClick">添加</el-button>
+            </span>
+          </template>
+        </el-dialog>
+
+
         <!-- 修改宿舍对话框 -->
-        <el-dialog v-model="dialogEditDormVisible" title="编辑宿舍" draggable>
+        <!-- <el-dialog v-model="dialogEditDormVisible" title="编辑宿舍" draggable>
           <el-form class="register-form" :model="dialogEditDormForm" label-position="left" label-width="85px">
             <el-form-item label="宿舍楼名">
               <el-input v-model="dialogEditDormForm.name" placeholder="宿舍楼名称"></el-input>
@@ -300,27 +630,8 @@ const onToolBarAddDormClick = () => {
               <el-button type="primary" @click="onDialogEditDormSaveClick">保存</el-button>
             </span>
           </template>
-        </el-dialog>
+        </el-dialog> -->
 
-
-        <!-- 添加宿舍对话框 -->
-        <el-dialog v-model="dialogAddDormVisible" title="添加宿舍" draggable>
-          <el-form class="register-form" :model="dialogAddDormForm" label-position="left" label-width="85px">
-            <el-form-item label="宿舍楼名">
-              <el-input v-model="dialogAddDormForm.name" placeholder="宿舍楼名称"></el-input>
-            </el-form-item>
-          </el-form>
-          <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="dialogAddDormVisible = false">取消</el-button>
-              <el-button type="primary" @click="onDialogAddDormSaveClick">添加</el-button>
-            </span>
-          </template>
-        </el-dialog>
-      </el-tab-pane>
-
-      <el-tab-pane label="宿舍房间">
-        宿舍房间
       </el-tab-pane>
     </el-tabs>
   </div>

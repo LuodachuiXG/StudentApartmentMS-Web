@@ -1,4 +1,4 @@
-import { User } from "./User";
+import {User} from "./User";
 
 /**
  * 宿舍楼实体类接口

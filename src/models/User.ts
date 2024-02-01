@@ -1,5 +1,5 @@
-import { GenderEnum } from "./GenderEnum";
-import { RoleEnum } from "./RoleEnum";
+import {GenderEnum} from "./GenderEnum";
+import {RoleEnum} from "./RoleEnum";
 
 /**
  * 用户实体类接口

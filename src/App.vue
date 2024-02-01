@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useDark, useToggle } from '@vueuse/core';
-import { StoreEnum } from './models/StoreEnum';
-import { User } from './models/User';
-import { useRoute, useRouter } from 'vue-router';
-import { onMounted, watch, ref, reactive } from 'vue';
-import { RoleEnum } from './models/RoleEnum';
-import { deleteUsers, updateUser, updateUserPassword } from './api/userApi';
-import { GenderEnum } from './models/GenderEnum';
-import { errorConfirmBox, errorMsg, formatDate, successMsg, warningConfirmBox } from './utils/MyUtils';
-import { RouterViews } from './router/RouterViews';
+import {useDark, useToggle} from '@vueuse/core';
+import {StoreEnum} from './models/StoreEnum';
+import {User} from './models/User';
+import {useRoute, useRouter} from 'vue-router';
+import {onMounted, watch, ref, reactive} from 'vue';
+import {RoleEnum} from './models/RoleEnum';
+import {deleteUsers, updateUser, updateUserPassword} from './api/userApi';
+import {GenderEnum} from './models/GenderEnum';
+import {errorConfirmBox, errorMsg, formatDate, successMsg, warningConfirmBox} from './utils/MyUtils';
+import {RouterViews} from './router/RouterViews';
 
 // 当前路由线路
 const route = useRoute();
@@ -166,35 +166,35 @@ const onUserInfo = () => {
  */
 const onDialogUserInfoSaveClick = () => {
   if (dialogUserInfoForm.name.length === 0 || dialogUserInfoForm.id.length === 0 ||
-    dialogUserInfoForm.phone.length === 0 || dialogUserInfoForm.gender.length === 0 ||
-    dialogUserInfoForm.birth === null || dialogUserInfoForm.birth.length === 0) {
+      dialogUserInfoForm.phone.length === 0 || dialogUserInfoForm.gender.length === 0 ||
+      dialogUserInfoForm.birth === null || dialogUserInfoForm.birth.length === 0) {
     errorMsg('请将信息填写完整');
     return;
   }
 
   // 修改个人信息
   updateUser(dialogUserInfoForm.userId, dialogUserInfoForm.name,
-    dialogUserInfoForm.id, '', dialogUserInfoForm.phone,
-    dialogUserInfoForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
-    formatDate(new Date(dialogUserInfoForm.birth))).then(() => {
-      successMsg('修改成功');
-      // 将新数据写入当前登录的用户缓存
-      let mUser = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
-      mUser.name = dialogUserInfoForm.name;
-      mUser.id = dialogUserInfoForm.id;
-      mUser.gender = dialogUserInfoForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE;
-      mUser.phone = dialogUserInfoForm.phone;
-      mUser.birth = dialogUserInfoForm.birth;
-      localStorage.setItem(StoreEnum.USER, JSON.stringify(mUser));
-      user.value = mUser;
+      dialogUserInfoForm.id, '', dialogUserInfoForm.phone,
+      dialogUserInfoForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+      formatDate(new Date(dialogUserInfoForm.birth))).then(() => {
+    successMsg('修改成功');
+    // 将新数据写入当前登录的用户缓存
+    let mUser = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
+    mUser.name = dialogUserInfoForm.name;
+    mUser.id = dialogUserInfoForm.id;
+    mUser.gender = dialogUserInfoForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE;
+    mUser.phone = dialogUserInfoForm.phone;
+    mUser.birth = dialogUserInfoForm.birth;
+    localStorage.setItem(StoreEnum.USER, JSON.stringify(mUser));
+    user.value = mUser;
 
-      // 修改成功，清空个人信息对话框表单
-      clearDialogUserInfoForm()
-      // 关闭个人信息对话框
-      dialogUserInfoVisible.value = false
-    }).catch((err) => {
-      errorMsg(err);
-    });
+    // 修改成功，清空个人信息对话框表单
+    clearDialogUserInfoForm()
+    // 关闭个人信息对话框
+    dialogUserInfoVisible.value = false
+  }).catch((err) => {
+    errorMsg(err);
+  });
 }
 
 /**
@@ -214,8 +214,8 @@ const clearDialogUserInfoForm = () => {
  */
 const onDialogUpdatePasswordSaveClick = () => {
   if (dialogUpdatePasswordForm.oldPwd.length === 0 ||
-    dialogUpdatePasswordForm.newPwd.length === 0 ||
-    dialogUpdatePasswordForm.newPwdAgain.length === 0) {
+      dialogUpdatePasswordForm.newPwd.length === 0 ||
+      dialogUpdatePasswordForm.newPwdAgain.length === 0) {
     errorMsg('请将信息填写完整');
     return;
   }
@@ -287,9 +287,10 @@ const clearDialogUpdatePasswordForm = () => {
       <el-aside v-if="user !== null" class="aside" width="250px">
         <div class="button-container">
           <div class="button-div" v-for="(menu, i) in asideMenus"
-            :style="(menu.role === null || (menu.role === user.role)) ? '' : 'display:none;'">
+               :style="(menu.role === null || (menu.role === user.role)) ? '' : 'display:none;'">
             <el-button class="button" :type="asideMenuIndex === i ? 'primary' : ''" size="large"
-              :text="asideMenuIndex !== i" :icon="menu.icon" @click="onAsideMenuChange(i)" auto-insert-space>{{ menu.name
+                       :text="asideMenuIndex !== i" :icon="menu.icon" @click="onAsideMenuChange(i)" auto-insert-space>{{
+                menu.name
               }}
             </el-button>
           </div>
@@ -312,19 +313,20 @@ const clearDialogUpdatePasswordForm = () => {
         <el-input v-model="dialogUserInfoForm.name" placeholder="姓名"></el-input>
       </el-form-item>
       <el-form-item :label="user?.role === RoleEnum.ADMIN ? '工号' : '学号'" required>
-        <el-input v-model="dialogUserInfoForm.id" :placeholder="user?.role === RoleEnum.ADMIN ? '工号' : '学号'"></el-input>
+        <el-input v-model="dialogUserInfoForm.id"
+                  :placeholder="user?.role === RoleEnum.ADMIN ? '工号' : '学号'"></el-input>
       </el-form-item>
       <el-form-item label="手机号" required>
         <el-input v-model="dialogUserInfoForm.phone" placeholder="手机号"></el-input>
       </el-form-item>
       <el-form-item label="性别" required>
         <el-radio-group v-model="dialogUserInfoForm.gender">
-          <el-radio label="男" />
-          <el-radio label="女" />
+          <el-radio label="男"/>
+          <el-radio label="女"/>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="出生日期" required>
-        <el-date-picker v-model="dialogUserInfoForm.birth" placeholder="选择出生日期" style="width: 100%;" />
+        <el-date-picker v-model="dialogUserInfoForm.birth" placeholder="选择出生日期" style="width: 100%;"/>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -362,7 +364,6 @@ const clearDialogUpdatePasswordForm = () => {
 .container {
   height: 100%;
 }
-
 
 
 .head {

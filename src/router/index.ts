@@ -1,9 +1,9 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
-import { StoreEnum } from '../models/StoreEnum';
-import { RoleEnum } from '../models/RoleEnum';
-import { User } from '../models/User';
-import { errorMsg } from '../utils/MyUtils';
-import { RouterViews } from './RouterViews';
+import {createRouter, createWebHashHistory} from 'vue-router';
+import {StoreEnum} from '../models/StoreEnum';
+import {RoleEnum} from '../models/RoleEnum';
+import {User} from '../models/User';
+import {errorMsg} from '../utils/MyUtils';
+import {RouterViews} from './RouterViews';
 
 export const router = createRouter({
     history: createWebHashHistory(),
@@ -53,7 +53,7 @@ router.beforeEach(async (to, _from) => {
     // 未登录的话跳转到登录页面
     if (to.name !== 'login' && localStorage.getItem(StoreEnum.USER) === null) {
         errorMsg('登录已过期，请重新登录');
-        return { name: RouterViews.LOGIN }
+        return {name: RouterViews.LOGIN}
     }
 
     const viewRole: RoleEnum | undefined = to.meta.role as RoleEnum;
@@ -62,7 +62,7 @@ router.beforeEach(async (to, _from) => {
         const user = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
         if (viewRole != user.role) {
             errorMsg(`你没有权限访问 ${to.path}`)
-            return { name: RouterViews.MAIN }
+            return {name: RouterViews.MAIN}
         }
     }
 })

@@ -1,4 +1,4 @@
-import { ElMessage, ElMessageBox } from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 
 /**
  * 将 Date 格式化为 "2024-02-21" 的格式

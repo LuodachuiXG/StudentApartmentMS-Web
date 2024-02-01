@@ -1,4 +1,5 @@
-import { User } from "../models/User";
+import {Room} from "../models/Room";
+import {User} from "../models/User";
 import service from "./index"
 
 /**
@@ -20,9 +21,20 @@ export function addDorm(dormName: string) {
  * @param page 当前页
  * @param size 每页大小
  */
-export function dormByPage(page: number, size: number) {
+export function dormsByPage(page: number, size: number) {
     return service({
         url: `/dorm/${page}/${size}`,
+        method: 'GET'
+    });
+}
+
+/**
+ * 获取所有宿舍楼
+ * 仅管理员
+ */
+export function allDorms() {
+    return service({
+        url: '/dorm',
         method: 'GET'
     });
 }
@@ -88,5 +100,33 @@ export function delDorm(dormId: number) {
         url: '/dorm',
         method: 'DELETE',
         data: [dormId]
+    });
+}
+
+
+/**
+ * 分页获取宿舍房间
+ * 仅管理员
+ * @param dormId 宿舍楼 ID
+ * @param page 当前页
+ * @param size 每页大小
+ */
+export function roomsByPage(dormId: number, page: number, size: number) {
+    return service({
+        url: `/dorm/room/${dormId}/${page}/${size}`,
+        method: 'GET'
+    });
+}
+
+/**
+ * 添加宿舍房间
+ * 仅管理员
+ * @param rooms 房间对象数组（仅填充 dormitoryId、name、totalBeds 三个字段）
+ */
+export function addRooms(rooms: Array<Room>) {
+    return service({
+        url: '/dorm/room',
+        method: 'POST',
+        data: rooms
     });
 }

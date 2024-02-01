@@ -2,17 +2,17 @@
 </script>
 
 <template>
-  <div class="containter">
+  <div class="container">
     <span>404 Not Found</span>
   </div>
 </template>
 
 <style scoped lang="scss">
-.containter {
-    text-align: center;
+.container {
+  text-align: center;
 }
 
-.containter span {
-    font-size: 3em;
+.container span {
+  font-size: 3em;
 }
 </style>

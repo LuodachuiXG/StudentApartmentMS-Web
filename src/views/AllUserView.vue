@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, reactive } from 'vue';
-import { userByPage, deleteUsers, addStudent, userByKeyAndPage, updateUser } from '../api/userApi';
-import { Pager } from '../models/Pager';
-import { User } from '../models/User';
-import { RoleEnum } from '../models/RoleEnum';
-import { GenderEnum } from '../models/GenderEnum';
-import { errorMsg, formatDate, successMsg, warningConfirmBox } from '../utils/MyUtils';
-import { useRoute } from 'vue-router';
+import {onMounted, ref, reactive} from 'vue';
+import {userByPage, deleteUsers, addStudent, userByKeyAndPage, updateUser} from '../api/userApi';
+import {Pager} from '../models/Pager';
+import {User} from '../models/User';
+import {RoleEnum} from '../models/RoleEnum';
+import {GenderEnum} from '../models/GenderEnum';
+import {errorMsg, formatDate, successMsg, warningConfirmBox} from '../utils/MyUtils';
+import {useRoute} from 'vue-router';
 
 /**
  * 学生对话框模式枚举类
@@ -149,8 +149,8 @@ const onTableSizeChangChange = (value: number) => {
  * 表格用户性别筛选过滤事件
  */
 const onTableGenderFilterHandler = (
-  value: string,
-  row: User
+    value: string,
+    row: User
 ) => {
   return row.gender === value;
 }
@@ -159,8 +159,8 @@ const onTableGenderFilterHandler = (
  * 表格用户身份筛选过滤事件
  */
 const onTableRoleFilterHandler = (
-  value: string,
-  row: User
+    value: string,
+    row: User
 ) => {
   return row.role === value;
 }
@@ -268,8 +268,8 @@ const clearStudentValue = () => {
  */
 const onDialogStudentClick = () => {
   if (dialogstudentForm.name.length === 0 || dialogstudentForm.id.length === 0 ||
-    dialogstudentForm.phone.length === 0 || dialogstudentForm.birth === null ||
-    dialogstudentForm.birth.length === 0) {
+      dialogstudentForm.phone.length === 0 || dialogstudentForm.birth === null ||
+      dialogstudentForm.birth.length === 0) {
     errorMsg('请将信息填写完整');
     return;
   }
@@ -277,34 +277,34 @@ const onDialogStudentClick = () => {
   if (dialogStudentMode.value == StudentMode.ADD) {
     // 当前是添加学生模式
     addStudent(dialogstudentForm.name, dialogstudentForm.id, dialogstudentForm.phone,
-      dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
-      formatDate(new Date(dialogstudentForm.birth))).then(() => {
-        // 添加成功，清空学生信息
-        clearStudentValue();
-        successMsg('添加成功');
-        // 刷新用户数据
-        refreshTableData();
-        // 关闭学生对话框
-        dialogStudentVisible.value = false
-      }).catch((err) => {
-        errorMsg(err);
-      });
+        dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+        formatDate(new Date(dialogstudentForm.birth))).then(() => {
+      // 添加成功，清空学生信息
+      clearStudentValue();
+      successMsg('添加成功');
+      // 刷新用户数据
+      refreshTableData();
+      // 关闭学生对话框
+      dialogStudentVisible.value = false
+    }).catch((err) => {
+      errorMsg(err);
+    });
   } else {
     // 当前是修改学生模式
     updateUser(dialogstudentForm.userId, dialogstudentForm.name, dialogstudentForm.id,
-      dialogstudentForm.password, dialogstudentForm.phone,
-      dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
-      formatDate(new Date(dialogstudentForm.birth))).then(() => {
-        // 修改成功，清空学生信息
-        clearStudentValue();
-        successMsg('修改成功');
-        // 刷新用户数据
-        refreshTableData();
-        // 关闭学生对话框
-        dialogStudentVisible.value = false
-      }).catch((err) => {
-        errorMsg(err);
-      });
+        dialogstudentForm.password, dialogstudentForm.phone,
+        dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+        formatDate(new Date(dialogstudentForm.birth))).then(() => {
+      // 修改成功，清空学生信息
+      clearStudentValue();
+      successMsg('修改成功');
+      // 刷新用户数据
+      refreshTableData();
+      // 关闭学生对话框
+      dialogStudentVisible.value = false
+    }).catch((err) => {
+      errorMsg(err);
+    });
   }
 }
 
@@ -363,27 +363,28 @@ const onDialogSearchResettingClick = () => {
       </el-button-group>
       <el-button v-if="!isSearchMode" plain type="primary" @click="dialogSearchVisible = true">聚合查找</el-button>
       <el-button type="danger" plain @click="onToolBarDeleteClick"
-        :disabled="selectedUsers == null || selectedUsers.length == 0">删除</el-button>
+                 :disabled="selectedUsers == null || selectedUsers.length == 0">删除
+      </el-button>
 
     </div>
     <div class="table">
       <!-- 表格，显示用户 -->
       <el-table class="table" :data="pages?.data" border height="77vh"
-        :default-sort="{ prop: 'birth', order: 'descending' }" @selection-change="onTableSelectChange">
-        <el-table-column type="selection" width="55" />
-        <el-table-column fixed prop="id" label="工号（学号）" width="120" />
-        <el-table-column fixed prop="name" label="姓名" width="90" />
+                :default-sort="{ prop: 'birth', order: 'descending' }" @selection-change="onTableSelectChange">
+        <el-table-column type="selection" width="55"/>
+        <el-table-column fixed prop="id" label="工号（学号）" width="120"/>
+        <el-table-column fixed prop="name" label="姓名" width="90"/>
         <el-table-column prop="role" label="身份" width="80" :formatter="onTableRoleFormat" :filters="[
           { text: '管理员', value: RoleEnum.ADMIN },
           { text: '学生', value: RoleEnum.STUDENT }
-        ]" :filter-method="onTableRoleFilterHandler" />
-        <el-table-column prop="phone" label="电话" width="120" />
+        ]" :filter-method="onTableRoleFilterHandler"/>
+        <el-table-column prop="phone" label="电话" width="120"/>
         <el-table-column prop="gender" label="性别" width="80" :formatter="onTableGenderFormat" :filters="[
           { text: '男', value: GenderEnum.MALE },
           { text: '女', value: GenderEnum.FEMALE }
-        ]" :filter-method="onTableGenderFilterHandler" />
-        <el-table-column prop="birth" label="出生日期" width="120" sortable />
-        <el-table-column prop="lastLogin" label="最后登录" width="220" />
+        ]" :filter-method="onTableGenderFilterHandler"/>
+        <el-table-column prop="birth" label="出生日期" width="120" sortable/>
+        <el-table-column prop="lastLogin" label="最后登录" width="220"/>
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
             <!-- 管理员只能修改学生信息，不能修改管理员信息 -->
@@ -391,7 +392,8 @@ const onDialogSearchResettingClick = () => {
               <el-button link type="primary" size="small" @click="onTableColEditClick(scope.row)">编辑</el-button>
               <el-button link type="primary" size="small">宿舍</el-button>
               <el-button link type="danger" size="small"
-                @click="onTableColDeleteClick(scope.row.userId, scope.row.name)">删除</el-button>
+                         @click="onTableColDeleteClick(scope.row.userId, scope.row.name)">删除
+              </el-button>
             </div>
             <div v-else>
               <el-button link type="primary" size="small">查看</el-button>
@@ -404,14 +406,14 @@ const onDialogSearchResettingClick = () => {
     <!-- 页码组件 -->
     <div class="pagination-div">
       <el-pagination class="pagination" :page-size="pages?.size" layout="total, prev, pager, next, sizes"
-        :current-page="currentPage" :total="pages?.totalData" @current-change="onTableCurrentPageChange"
-        @size-change="onTableSizeChangChange" />
+                     :current-page="currentPage" :total="pages?.totalData" @current-change="onTableCurrentPageChange"
+                     @size-change="onTableSizeChangChange"/>
     </div>
 
 
     <!-- 添加 / 编辑学生对话框 -->
     <el-dialog v-model="dialogStudentVisible" draggable
-      :title="(dialogStudentMode === StudentMode.ADD ? '添加' : '编辑') + '学生'">
+               :title="(dialogStudentMode === StudentMode.ADD ? '添加' : '编辑') + '学生'">
       <el-form class="register-form" :model="dialogstudentForm" label-position="left" label-width="80px">
         <el-form-item label="姓名" required>
           <el-input v-model="dialogstudentForm.name" placeholder="学生姓名"></el-input>
@@ -420,8 +422,9 @@ const onDialogSearchResettingClick = () => {
           <el-input v-model="dialogstudentForm.id" placeholder="学号"></el-input>
         </el-form-item>
         <el-form-item label="密码">
-          <el-input v-if="dialogStudentMode === StudentMode.ADD" placeholder="默认密码为手机后六位 学生上线后会提示修改密码"
-            disabled></el-input>
+          <el-input v-if="dialogStudentMode === StudentMode.ADD"
+                    placeholder="默认密码为手机后六位 学生上线后会提示修改密码"
+                    disabled></el-input>
           <el-input v-else placeholder="为空保持不变" v-model="dialogstudentForm.password"></el-input>
         </el-form-item>
         <el-form-item label="手机号" required>
@@ -429,22 +432,24 @@ const onDialogSearchResettingClick = () => {
         </el-form-item>
         <el-form-item label="性别" required>
           <el-radio-group v-model="dialogstudentForm.gender">
-            <el-radio label="男" />
-            <el-radio label="女" />
+            <el-radio label="男"/>
+            <el-radio label="女"/>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="出生日期" required>
-          <el-date-picker v-model="dialogstudentForm.birth" placeholder="选择出生日期" style="width: 100%;" />
+          <el-date-picker v-model="dialogstudentForm.birth" placeholder="选择出生日期" style="width: 100%;"/>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <!-- 只有添加学生模式才显示重置按钮 -->
           <el-button @click="clearStudentValue" type="warning" plain
-            v-if="dialogStudentMode === StudentMode.ADD">重置</el-button>
+                     v-if="dialogStudentMode === StudentMode.ADD">重置</el-button>
           <el-button @click="dialogStudentVisible = false">取消</el-button>
-          <el-button type="primary" @click="onDialogStudentClick">{{ dialogStudentMode === StudentMode.ADD ? '添加' :
-            '保存' }}</el-button>
+          <el-button type="primary" @click="onDialogStudentClick">{{
+              dialogStudentMode === StudentMode.ADD ? '添加' :
+                  '保存'
+            }}</el-button>
         </span>
       </template>
     </el-dialog>

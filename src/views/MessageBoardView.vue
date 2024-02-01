@@ -4,21 +4,6 @@
 <template>
   <div class="container">
     <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
-    <el-text class="title">留言板</el-text><br>
   </div>
 </template>
 
@@ -27,6 +12,7 @@
   width: 100%;
   height: 100%;
 }
+
 .title {
   font-size: 2em;
 }

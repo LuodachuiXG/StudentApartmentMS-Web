@@ -28,7 +28,7 @@ export function login(id: string, password: string) {
  * @param birth 生日
  */
 export function register(name: string, id: string, password: string,
-    phone: string, gender: string, birth: string) {
+                         phone: string, gender: string, birth: string) {
     const data = {
         name: name,
         id: id,
@@ -54,7 +54,7 @@ export function register(name: string, id: string, password: string,
  * @param birth 生日
  */
 export function addStudent(name: string, id: string, phone: string,
-    gender: string, birth: string) {
+                           gender: string, birth: string) {
     const data = {
         name: name,
         id: id,
@@ -132,11 +132,11 @@ export function deleteUsers(userIds: Array<number>) {
  * @param phone 手机号
  * @param gender 性别
  * @param birth 出生日期
- * @returns 
+ * @returns
  */
 export function updateUser(userId: number, name: string,
-    id: string, password: string, phone: string,
-    gender: string, birth: string) {
+                           id: string, password: string, phone: string,
+                           gender: string, birth: string) {
     const data = {
         userId: userId,
         name: name,
@@ -158,7 +158,7 @@ export function updateUser(userId: number, name: string,
  * 此接口只能修改密码的用户本人调用
  * @param oldPwd 旧密码
  * @param newPwd 新密码
- * @returns 
+ * @returns
  */
 export function updateUserPassword(oldPwd: string, newPwd: string) {
     return service({
