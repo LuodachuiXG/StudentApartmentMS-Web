@@ -2,7 +2,7 @@
 import { onMounted, ref, reactive } from 'vue';
 import { Dorm } from '../models/Dorm';
 import { Pager } from '../models/Pager';
-import { addDormAdmins, delDorm, delDormAdmins, dormByPage, updateDorm } from '../api/dormApi';
+import { addDorm, addDormAdmins, delDorm, delDormAdmins, dormByPage, updateDorm } from '../api/dormApi';
 import { errorMsg, successMsg, warningConfirmBox } from '../utils/MyUtils';
 import { GenderEnum } from '../models/GenderEnum';
 import { useRouter } from 'vue-router';
@@ -34,6 +34,15 @@ const dialogEditDormForm = reactive({
   isAdmin: false,
   // 编辑宿舍对话框中是否是管理员切换按钮
   isAdminValue: false,
+});
+
+
+// 添加宿舍对话框是否显示
+const dialogAddDormVisible = ref(false);
+// 添加宿舍对话框表单
+const dialogAddDormForm = reactive({
+  // 宿舍楼名
+  name: ''
 });
 
 
@@ -101,6 +110,13 @@ const clearDialogEditDormForm = () => {
 }
 
 /**
+ * 清空添加宿舍对话框的表单
+ */
+const clearDialogAddDormForm = () => {
+  dialogAddDormForm.name = '';
+}
+
+/**
  * 宿舍表格“编辑”按钮点击事件
  * @param dorm 宿舍楼实体类
  */
@@ -123,7 +139,7 @@ const onDormTableEditClick = (dorm: Dorm) => {
 }
 
 /**
- * 宿舍楼编辑对话框保存按钮点击事件
+ * 编辑宿舍楼对话框保存按钮点击事件
  */
 const onDialogEditDormSaveClick = () => {
   if (dialogEditDormForm.name.length === 0) {
@@ -174,6 +190,25 @@ const onDialogEditDormSaveClick = () => {
 }
 
 /**
+ * 添加宿舍楼对话框添加按钮点击事件
+ */
+const onDialogAddDormSaveClick = () => {
+  // 添加宿舍楼
+  addDorm(dialogAddDormForm.name).then(() => {
+    // 添加成功
+    successMsg('添加成功');
+    // 刷新宿舍楼
+    refreshDorms();
+    // 清空添加宿舍楼对话框表单
+    clearDialogAddDormForm();
+    // 关闭添加宿舍楼对话框
+    dialogAddDormVisible.value = false;
+  }).catch((err) => {
+    errorMsg(err);
+  });
+}
+
+/**
  * 宿舍楼表删除按钮点击事件
  * @param dorm 
  */
@@ -193,7 +228,7 @@ const onDormTableDelClick = (dorm: Dorm) => {
  * 工具栏“添加宿舍楼”按钮点击事件
  */
 const onToolBarAddDormClick = () => {
-
+  dialogAddDormVisible.value = true;
 }
 </script>
 
@@ -263,6 +298,22 @@ const onToolBarAddDormClick = () => {
             <span class="dialog-footer">
               <el-button @click="dialogEditDormVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogEditDormSaveClick">保存</el-button>
+            </span>
+          </template>
+        </el-dialog>
+
+
+        <!-- 添加宿舍对话框 -->
+        <el-dialog v-model="dialogAddDormVisible" title="添加宿舍" draggable>
+          <el-form class="register-form" :model="dialogAddDormForm" label-position="left" label-width="85px">
+            <el-form-item label="宿舍楼名">
+              <el-input v-model="dialogAddDormForm.name" placeholder="宿舍楼名称"></el-input>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="dialogAddDormVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogAddDormSaveClick">添加</el-button>
             </span>
           </template>
         </el-dialog>

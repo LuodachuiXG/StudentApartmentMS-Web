@@ -1,9 +1,21 @@
-import { Dorm } from "../models/Dorm";
 import { User } from "../models/User";
 import service from "./index"
 
 /**
- * 分页获取宿舍
+ * 添加宿舍楼
+ * 仅管理员
+ * @param dormName 宿舍楼名
+ */
+export function addDorm(dormName: string) {
+    return service({
+        url: '/dorm',
+        method: 'POST',
+        data: [dormName]
+    });
+}
+
+/**
+ * 分页获取宿舍楼
  * 仅管理员
  * @param page 当前页
  * @param size 每页大小
