@@ -2,8 +2,8 @@
 import { onMounted, ref, reactive } from 'vue';
 import { Dorm } from '../models/Dorm';
 import { Pager } from '../models/Pager';
-import { dormByPage } from '../api/dormApi';
-import { errorMsg } from '../utils/MyUtils';
+import { addDormAdmins, delDormAdmins, dormByPage, updateDorm } from '../api/dormApi';
+import { errorMsg, successMsg } from '../utils/MyUtils';
 import { GenderEnum } from '../models/GenderEnum';
 import { useRouter } from 'vue-router';
 import { RouterViews } from '../router/RouterViews';
@@ -30,8 +30,10 @@ const dialogEditDormForm = reactive({
   dormitoryId: -1,
   // 宿舍楼名
   name: '',
-  // 当前登录用户是否是该宿舍楼管理员
-  isAdmin: false
+  // 当前登录用户是否是该宿舍楼管理员，该字段用于对比此选项是否更改
+  isAdmin: false,
+  // 编辑宿舍对话框中是否是管理员切换按钮
+  isAdminValue: false,
 });
 
 
@@ -89,10 +91,21 @@ const onDormTableUserTagClick = (id: number) => {
 }
 
 /**
+ * 清空修改宿舍对话框的表单
+ */
+const clearDialogEditDormForm = () => {
+  dialogEditDormForm.dormitoryId = -1;
+  dialogEditDormForm.isAdmin = false;
+  dialogEditDormForm.name = '';
+  dialogEditDormForm.isAdminValue = false;
+}
+
+/**
  * 宿舍表格“编辑”按钮点击事件
  * @param dorm 宿舍楼实体类
  */
 const onDormTableEditClick = (dorm: Dorm) => {
+  clearDialogEditDormForm();
   // 将当前选择编辑的宿舍楼信息写入宿舍楼编辑对话框表单
   dialogEditDormForm.dormitoryId = dorm.dormitoryId;
   dialogEditDormForm.name = dorm.name;
@@ -101,6 +114,7 @@ const onDormTableEditClick = (dorm: Dorm) => {
   dorm.admins.forEach((user) => {
     if (user.userId === currentLoginUser.userId) {
       dialogEditDormForm.isAdmin = true;
+      dialogEditDormForm.isAdminValue = true;
       return;
     }
   });
@@ -112,6 +126,51 @@ const onDormTableEditClick = (dorm: Dorm) => {
  * 宿舍楼编辑对话框保存按钮点击事件
  */
 const onDialogEditDormSaveClick = () => {
+  if (dialogEditDormForm.name.length === 0) {
+    errorMsg('请将内容填写完整');
+    return;
+  }
+
+  // 修改宿舍
+  updateDorm(dialogEditDormForm.dormitoryId, dialogEditDormForm.name).then((res) => {
+    // 修改宿舍成功
+    // 判断是否需要修改宿舍管理员
+    if (dialogEditDormForm.isAdmin !== dialogEditDormForm.isAdminValue) {
+      // 编辑宿舍对话框中“管理该宿舍”按钮值被修改
+      const currentLoginUser = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
+      if (dialogEditDormForm.isAdminValue) {
+        // 添加宿舍管理员
+        addDormAdmins(dialogEditDormForm.dormitoryId, [currentLoginUser]).then(() => {
+          // 添加宿舍管理员成功
+          successMsg('修改成功');
+          dialogEditDormVisible.value = false;
+          refreshDorms();
+        }).catch((err) => {
+          // 添加宿舍管理员失败
+          errorMsg(err);
+        });
+      } else {
+        // 删除宿舍管理员
+        delDormAdmins(dialogEditDormForm.dormitoryId, [currentLoginUser]).then(() => {
+          // 添加宿舍管理员成功
+          successMsg('修改成功');
+          dialogEditDormVisible.value = false;
+          refreshDorms();
+        }).catch((err) => {
+          // 删除宿舍管理员失败
+          errorMsg(err);
+        });
+      }
+    } else {
+      // 编辑宿舍对话框中“管理该宿舍”按钮值没有被修改
+      successMsg('修改成功');
+      dialogEditDormVisible.value = false;
+      refreshDorms();
+    }
+  }).catch((err) => {
+    // 修改宿舍失败
+    errorMsg(err);
+  });
 
 }
 </script>
@@ -131,7 +190,7 @@ const onDialogEditDormSaveClick = () => {
                 <div>
                   <el-popover :width="300" :title="user.name" v-for="user in scope.row.admins" :key="user.userId">
                     <template #reference>
-                      <el-tag round @click="onDormTableUserTagClick(user.id)" style="margin-right: 10px; cursor: pointer;"
+                      <el-tag round @click="onDormTableUserTagClick(user.id)" style="margin-right: 5px; cursor: pointer;"
                         type="warning">
                         {{ user.name }}
                       </el-tag>
@@ -171,7 +230,7 @@ const onDialogEditDormSaveClick = () => {
               <el-input v-model="dialogEditDormForm.name" placeholder="宿舍楼名称"></el-input>
             </el-form-item>
             <el-form-item label="管理该宿舍">
-              <el-switch v-model="dialogEditDormForm.isAdmin" />
+              <el-switch v-model="dialogEditDormForm.isAdminValue" />
             </el-form-item>
           </el-form>
           <template #footer>
