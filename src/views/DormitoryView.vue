@@ -10,7 +10,7 @@ import {
   delDormAdmins,
   dormsByPage,
   updateDorm,
-  roomsByPage, addRooms
+  roomsByPage, addRooms, delRooms
 } from '../api/dormApi';
 import {errorMsg, successMsg, warningConfirmBox} from '../utils/MyUtils';
 import {GenderEnum} from '../models/GenderEnum';
@@ -61,6 +61,9 @@ const tabDormDialogAddDormForm = reactive({
 
 // “宿舍房间”选项卡中当前选择的宿舍楼
 const tabRoomCurrentSelectDorm = ref<number | null>();
+
+// “宿舍房间”选项卡中表格选中的房间
+const tabRoomSelectedRooms = ref<Room[]>();
 
 // “宿舍房间”选项卡中存储所有宿舍楼（用于工具栏的宿舍选择器）
 const tabRoomDorms = ref<Array<Dorm>>();
@@ -374,6 +377,33 @@ const onTabRoomToolBarAddRoomClick = () => {
 }
 
 /**
+ * “宿舍房间”选项卡，房间表格删除按钮点击事件
+ * @param room 房间实体类
+ */
+const onTabRoomTableDelClick = (room: Room) => {
+  warningConfirmBox(`确定要删除 [${room.name}] 房间吗，此操作不可逆`).then(() => {
+    // 删除房间
+    onDelRoomsByRoomIds([room.roomId]);
+  });
+}
+
+/**
+ * 使用房间 ID 数组删除房间
+ * @param roomsIds 房间 ID 数组
+ */
+const onDelRoomsByRoomIds = (roomsIds: Array<number>) => {
+  delRooms(roomsIds).then(() => {
+    // 删除成功
+    successMsg('删除成功');
+    // 刷新当前宿舍楼的房间
+    tabRoomRefreshRooms();
+  }).catch((err) => {
+    // 删除失败
+    errorMsg(err);
+  })
+}
+
+/**
  * 添加房间对话框“添加”按钮点击事件
  */
 const onDialogAddRoomSaveClick = () => {
@@ -391,9 +421,10 @@ const onDialogAddRoomSaveClick = () => {
       dormitoryId: Number(tabRoomDialogAddRoomForm.dormId),
       name: tabRoomDialogAddRoomForm.roomName,
       totalBeds: tabRoomDialogAddRoomForm.totalBeds,
-      // 下面两个参数占位用，服务器不处理
+      // 下面三个参数占位用，服务器不处理
       roomId: -1,
-      headCount: -1
+      headCount: -1,
+      users: null
     }];
   } else {
     // 有多个宿舍名
@@ -406,9 +437,10 @@ const onDialogAddRoomSaveClick = () => {
           dormitoryId: Number(tabRoomDialogAddRoomForm.dormId),
           name: roomName,
           totalBeds: tabRoomDialogAddRoomForm.totalBeds,
-          // 下面两个参数占位用，服务器不处理
+          // 下面三个参数占位用，服务器不处理
           roomId: -1,
-          headCount: -1
+          headCount: -1,
+          users: null
         })
       }
     });
@@ -438,6 +470,32 @@ const onDialogAddRoomSaveClick = () => {
 const clearDialogAddRoomFormat = () => {
   tabRoomDialogAddRoomForm.dormId = '';
   tabRoomDialogAddRoomForm.roomName = '';
+}
+
+/**
+ * “宿舍楼”选项卡中表格选择项改变事件
+ * @param values 选择的房间
+ */
+const onTabRoomTableSelectChange = (values: Room[]) => {
+  tabRoomSelectedRooms.value = values;
+}
+
+/**
+ * “宿舍楼”选项卡中工具栏删除按钮点击事件
+ */
+const onTabRoomToolBarDeleteClick = () => {
+  // 获取表格选中的房间的 ID
+  let roomIds = new Array<number>();
+  // 获取表格选中的房间名
+  let roomNames = new Array<string>();
+  tabRoomSelectedRooms.value?.forEach((room) => {
+    roomIds.push(room.roomId);
+    roomNames.push(room.name);
+  });
+  warningConfirmBox(`确定要删除 [${roomNames}] ${roomIds.length} 个房间吗，此操作不可逆！`).then(() => {
+    // 删除房间
+    onDelRoomsByRoomIds(roomIds);
+  });
 }
 </script>
 
@@ -539,10 +597,13 @@ const clearDialogAddRoomFormat = () => {
             <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
           </el-select>
           <el-button plain type="primary" @click="onTabRoomToolBarAddRoomClick">添加房间</el-button>
+          <el-button type="danger" plain @click="onTabRoomToolBarDeleteClick"
+                     :disabled="tabRoomSelectedRooms == null || tabRoomSelectedRooms.length == 0">删除
+          </el-button>
         </div>
         <div class="table">
           <!-- 表格，显示宿舍楼 -->
-          <el-table class="table" :data="tabRoomPages?.data" border height="70vh"
+          <el-table class="table" :data="tabRoomPages?.data" border height="70vh" @selection-change="onTabRoomTableSelectChange"
                     :default-sort="{ prop: 'birth', order: 'descending' }">
             <el-table-column type="selection" width="55"/>
             <el-table-column fixed prop="name" label="房间名" width="130"/>
@@ -551,18 +612,17 @@ const clearDialogAddRoomFormat = () => {
             <el-table-column fixed="right" label="房间住户">
               <template #default="scope">
                 <div>
-                  <el-popover :width="300" :title="user.name" v-for="user in scope.row.admins" :key="user.userId">
+                  <el-popover :width="300" :title="user.name" v-for="user in scope.row.users" :key="user.userId">
                     <template #reference>
                       <el-tag round @click="onDormTableUserTagClick(user.id)"
-                              style="margin-right: 5px; cursor: pointer;"
-                              type="warning">
+                              style="margin-right: 5px; cursor: pointer;">
                         {{ user.name }}
                       </el-tag>
                     </template>
                     <template #default>
                       <div class="demo-rich-conent" style="display: flex; gap: 10px; flex-direction: column">
                         <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
-                        <p>工号：{{ user.id }}</p>
+                        <p>学号：{{ user.id }}</p>
                         <p>电话：{{ user.phone }}</p>
                       </div>
                     </template>
@@ -572,9 +632,8 @@ const clearDialogAddRoomFormat = () => {
             </el-table-column>
             <el-table-column fixed="right" label="操作" width="180">
               <template #default=scope>
-                <el-button link type="primary" size="small" @click="onDormTableEditClick(scope.row)">编辑</el-button>
-                <el-button link type="primary" size="small">查看房间</el-button>
-                <el-button link type="danger" size="small" @click="onDormTableDelClick(scope.row)">删除</el-button>
+                <el-button link type="primary" size="small" @click="">编辑</el-button>
+                <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>

@@ -37,7 +37,7 @@ const dialogStudentVisible = ref(false);
 // 标记当前学生对话框是添加还是编辑模式
 const dialogStudentMode = ref(StudentMode.ADD);
 // 添加 / 编辑学生表单
-const dialogstudentForm = reactive({
+const dialogStudentForm = reactive({
   userId: -1,
   name: '',
   id: '',
@@ -200,12 +200,12 @@ const onTableColEditClick = (user: User) => {
   // 清除学生对话框数据
   clearStudentValue();
   // 设置对话框数据为当前学生信息
-  dialogstudentForm.userId = user.userId;
-  dialogstudentForm.name = user.name;
-  dialogstudentForm.id = user.id;
-  dialogstudentForm.phone = user.phone;
-  dialogstudentForm.gender = user.gender === GenderEnum.MALE ? '男' : '女';
-  dialogstudentForm.birth = user.birth;
+  dialogStudentForm.userId = user.userId;
+  dialogStudentForm.name = user.name;
+  dialogStudentForm.id = user.id;
+  dialogStudentForm.phone = user.phone;
+  dialogStudentForm.gender = user.gender === GenderEnum.MALE ? '男' : '女';
+  dialogStudentForm.birth = user.birth;
 
   // 设置当前为编辑学生模式
   dialogStudentMode.value = StudentMode.EDIT;
@@ -254,31 +254,31 @@ const onToolBarDeleteClick = () => {
  * 清空学生对话框中的数据
  */
 const clearStudentValue = () => {
-  dialogstudentForm.userId = -1;
-  dialogstudentForm.name = '';
-  dialogstudentForm.id = '';
-  dialogstudentForm.password = '';
-  dialogstudentForm.phone = '';
-  dialogstudentForm.birth = '';
-  dialogstudentForm.gender = '男';
+  dialogStudentForm.userId = -1;
+  dialogStudentForm.name = '';
+  dialogStudentForm.id = '';
+  dialogStudentForm.password = '';
+  dialogStudentForm.phone = '';
+  dialogStudentForm.birth = '';
+  dialogStudentForm.gender = '男';
 }
 
 /**
  * 添加 / 编辑学生对话框添加按钮点击事件
  */
 const onDialogStudentClick = () => {
-  if (dialogstudentForm.name.length === 0 || dialogstudentForm.id.length === 0 ||
-      dialogstudentForm.phone.length === 0 || dialogstudentForm.birth === null ||
-      dialogstudentForm.birth.length === 0) {
+  if (dialogStudentForm.name.length === 0 || dialogStudentForm.id.length === 0 ||
+      dialogStudentForm.phone.length === 0 || dialogStudentForm.birth === null ||
+      dialogStudentForm.birth.length === 0) {
     errorMsg('请将信息填写完整');
     return;
   }
 
   if (dialogStudentMode.value == StudentMode.ADD) {
     // 当前是添加学生模式
-    addStudent(dialogstudentForm.name, dialogstudentForm.id, dialogstudentForm.phone,
-        dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
-        formatDate(new Date(dialogstudentForm.birth))).then(() => {
+    addStudent(dialogStudentForm.name, dialogStudentForm.id, dialogStudentForm.phone,
+        dialogStudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+        formatDate(new Date(dialogStudentForm.birth))).then(() => {
       // 添加成功，清空学生信息
       clearStudentValue();
       successMsg('添加成功');
@@ -291,10 +291,10 @@ const onDialogStudentClick = () => {
     });
   } else {
     // 当前是修改学生模式
-    updateUser(dialogstudentForm.userId, dialogstudentForm.name, dialogstudentForm.id,
-        dialogstudentForm.password, dialogstudentForm.phone,
-        dialogstudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
-        formatDate(new Date(dialogstudentForm.birth))).then(() => {
+    updateUser(dialogStudentForm.userId, dialogStudentForm.name, dialogStudentForm.id,
+        dialogStudentForm.password, dialogStudentForm.phone,
+        dialogStudentForm.gender === '男' ? GenderEnum.MALE : GenderEnum.FEMALE,
+        formatDate(new Date(dialogStudentForm.birth))).then(() => {
       // 修改成功，清空学生信息
       clearStudentValue();
       successMsg('修改成功');
@@ -414,30 +414,30 @@ const onDialogSearchResettingClick = () => {
     <!-- 添加 / 编辑学生对话框 -->
     <el-dialog v-model="dialogStudentVisible" draggable
                :title="(dialogStudentMode === StudentMode.ADD ? '添加' : '编辑') + '学生'">
-      <el-form class="register-form" :model="dialogstudentForm" label-position="left" label-width="80px">
+      <el-form class="register-form" :model="dialogStudentForm" label-position="left" label-width="80px">
         <el-form-item label="姓名" required>
-          <el-input v-model="dialogstudentForm.name" placeholder="学生姓名"></el-input>
+          <el-input v-model="dialogStudentForm.name" placeholder="学生姓名"></el-input>
         </el-form-item>
         <el-form-item label="学号" required>
-          <el-input v-model="dialogstudentForm.id" placeholder="学号"></el-input>
+          <el-input v-model="dialogStudentForm.id" placeholder="学号"></el-input>
         </el-form-item>
         <el-form-item label="密码">
           <el-input v-if="dialogStudentMode === StudentMode.ADD"
                     placeholder="默认密码为手机后六位 学生上线后会提示修改密码"
                     disabled></el-input>
-          <el-input v-else placeholder="为空保持不变" v-model="dialogstudentForm.password"></el-input>
+          <el-input v-else placeholder="为空保持不变" v-model="dialogStudentForm.password"></el-input>
         </el-form-item>
         <el-form-item label="手机号" required>
-          <el-input v-model="dialogstudentForm.phone" placeholder="手机号"></el-input>
+          <el-input v-model="dialogStudentForm.phone" placeholder="手机号"></el-input>
         </el-form-item>
         <el-form-item label="性别" required>
-          <el-radio-group v-model="dialogstudentForm.gender">
+          <el-radio-group v-model="dialogStudentForm.gender">
             <el-radio label="男"/>
             <el-radio label="女"/>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="出生日期" required>
-          <el-date-picker v-model="dialogstudentForm.birth" placeholder="选择出生日期" style="width: 100%;"/>
+          <el-date-picker v-model="dialogStudentForm.birth" placeholder="选择出生日期" style="width: 100%;"/>
         </el-form-item>
       </el-form>
       <template #footer>

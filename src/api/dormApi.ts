@@ -130,3 +130,16 @@ export function addRooms(rooms: Array<Room>) {
         data: rooms
     });
 }
+
+/**
+ * 删除宿舍房间
+ * 仅管理员
+ * @param roomIds 房间 ID 数组
+ */
+export function delRooms(roomIds: Array<number>) {
+    return service({
+        url: '/dorm/room',
+        method: 'DELETE',
+        data: roomIds
+    });
+}

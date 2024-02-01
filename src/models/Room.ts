@@ -1,3 +1,5 @@
+import {User} from "./User.ts";
+
 /**
  * 宿舍房间实体类接口
  */
@@ -12,4 +14,6 @@ export interface Room {
     headCount: number
     // 房间总床位
     totalBeds: number;
+    // 房间住户
+    users: User | null;
 }
