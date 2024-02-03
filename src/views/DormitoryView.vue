@@ -10,7 +10,7 @@ import {
   delDormAdmins,
   dormsByPage,
   updateDorm,
-  roomsByPage, addRooms, delRooms
+  roomsByPage, addRooms, delRooms, updateRoom
 } from '../api/dormApi';
 import {errorMsg, successMsg, warningConfirmBox} from '../utils/MyUtils';
 import {GenderEnum} from '../models/GenderEnum';
@@ -85,6 +85,22 @@ const tabRoomDialogAddRoomForm = reactive({
   dormId: '',
   // 房间名
   roomName: '',
+  // 总床位
+  totalBeds: 0,
+});
+
+
+// 修改房间对话框是否显示
+const tabRoomDialogEditRoomVisible = ref(false);
+// 修改房间对话框表单
+const tabRoomDialogEditRoomForm = reactive({
+  // 宿舍楼 ID
+  dormId: -1,
+  // 宿舍房间 ID
+  roomId: -1,
+  // 房间名
+  roomName: '',
+  // 总床位
   totalBeds: 0,
 });
 
@@ -377,6 +393,20 @@ const onTabRoomToolBarAddRoomClick = () => {
 }
 
 /**
+ * “宿舍房间”选项卡，房间表格编辑按钮点击事件
+ * @param room 房间实体类
+ */
+const onTabRoomTableEditClick = (room: Room) => {
+  // 将当前房间数据写到编辑房间对话框表单中
+  tabRoomDialogEditRoomForm.dormId = room.dormitoryId;
+  tabRoomDialogEditRoomForm.roomId = room.roomId;
+  tabRoomDialogEditRoomForm.roomName = room.name;
+  tabRoomDialogEditRoomForm.totalBeds = room.totalBeds;
+  // 显示编辑房间对话框
+  tabRoomDialogEditRoomVisible.value = true;
+}
+
+/**
  * “宿舍房间”选项卡，房间表格删除按钮点击事件
  * @param room 房间实体类
  */
@@ -497,6 +527,46 @@ const onTabRoomToolBarDeleteClick = () => {
     onDelRoomsByRoomIds(roomIds);
   });
 }
+
+
+/**
+ * 清空编辑房间对话框表单
+ */
+const clearDialogEditRoomFormat = () => {
+  tabRoomDialogEditRoomForm.dormId = -1;
+  tabRoomDialogEditRoomForm.roomId = -1;
+  tabRoomDialogEditRoomForm.roomName = '';
+  tabRoomDialogEditRoomForm.totalBeds = 0;
+}
+
+/**
+ * 编辑宿舍房间对话框保存按钮点击事件
+ */
+const onDialogEditRoomSaveClick = () => {
+  if (tabRoomDialogEditRoomForm.roomName.length === 0 ||
+      tabRoomDialogEditRoomForm.totalBeds <= 0) {
+    errorMsg('请将信息填写完整');
+    return;
+  }
+
+  // 修改房间
+  updateRoom(tabRoomDialogEditRoomForm.dormId,
+      tabRoomDialogEditRoomForm.roomId,
+      tabRoomDialogEditRoomForm.roomName,
+      tabRoomDialogEditRoomForm.totalBeds).then(() => {
+    // 修改成功
+    successMsg('修改成功');
+    // 关闭编辑房间对话框
+    tabRoomDialogEditRoomVisible.value = false;
+    // 刷新房间数据
+    tabRoomRefreshRooms();
+    // 清空编辑对话框表单内容
+    clearDialogEditRoomFormat();
+  }).catch((err) => {
+    // 修改失败
+    errorMsg(err);
+  });
+}
 </script>
 
 <template>
@@ -525,7 +595,7 @@ const onTabRoomToolBarDeleteClick = () => {
                       </el-tag>
                     </template>
                     <template #default>
-                      <div class="demo-rich-conent" style="display: flex; gap: 10px; flex-direction: column">
+                      <div style="display: flex; gap: 10px; flex-direction: column">
                         <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
                         <p>工号：{{ user.id }}</p>
                         <p>电话：{{ user.phone }}</p>
@@ -603,7 +673,8 @@ const onTabRoomToolBarDeleteClick = () => {
         </div>
         <div class="table">
           <!-- 表格，显示宿舍楼 -->
-          <el-table class="table" :data="tabRoomPages?.data" border height="70vh" @selection-change="onTabRoomTableSelectChange"
+          <el-table class="table" :data="tabRoomPages?.data" border height="70vh"
+                    @selection-change="onTabRoomTableSelectChange"
                     :default-sort="{ prop: 'birth', order: 'descending' }">
             <el-table-column type="selection" width="55"/>
             <el-table-column fixed prop="name" label="房间名" width="130"/>
@@ -620,7 +691,7 @@ const onTabRoomToolBarDeleteClick = () => {
                       </el-tag>
                     </template>
                     <template #default>
-                      <div class="demo-rich-conent" style="display: flex; gap: 10px; flex-direction: column">
+                      <div style="display: flex; gap: 10px; flex-direction: column">
                         <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
                         <p>学号：{{ user.id }}</p>
                         <p>电话：{{ user.phone }}</p>
@@ -632,7 +703,7 @@ const onTabRoomToolBarDeleteClick = () => {
             </el-table-column>
             <el-table-column fixed="right" label="操作" width="180">
               <template #default=scope>
-                <el-button link type="primary" size="small" @click="">编辑</el-button>
+                <el-button link type="primary" size="small" @click="onTabRoomTableEditClick(scope.row)">编辑</el-button>
                 <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
               </template>
             </el-table-column>
@@ -674,23 +745,22 @@ const onTabRoomToolBarDeleteClick = () => {
 
 
         <!-- 修改宿舍对话框 -->
-        <!-- <el-dialog v-model="dialogEditDormVisible" title="编辑宿舍" draggable>
-          <el-form class="register-form" :model="dialogEditDormForm" label-position="left" label-width="85px">
-            <el-form-item label="宿舍楼名">
-              <el-input v-model="dialogEditDormForm.name" placeholder="宿舍楼名称"></el-input>
+        <el-dialog v-model="tabRoomDialogEditRoomVisible" title="编辑房间" draggable>
+          <el-form class="register-form" :model="tabRoomDialogEditRoomForm" label-position="left" label-width="85px">
+            <el-form-item label="房间名">
+              <el-input v-model="tabRoomDialogEditRoomForm.roomName" placeholder="房间名称"></el-input>
             </el-form-item>
-            <el-form-item label="管理该宿舍">
-              <el-switch v-model="dialogEditDormForm.isAdminValue" />
+            <el-form-item label="总床位">
+              <el-input v-model="tabRoomDialogEditRoomForm.totalBeds" placeholder="房间总床位" type="number"></el-input>
             </el-form-item>
           </el-form>
           <template #footer>
             <span class="dialog-footer">
-              <el-button @click="dialogEditDormVisible = false">取消</el-button>
-              <el-button type="primary" @click="onDialogEditDormSaveClick">保存</el-button>
+              <el-button @click="tabRoomDialogEditRoomVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogEditRoomSaveClick">保存</el-button>
             </span>
           </template>
-        </el-dialog> -->
-
+        </el-dialog>
       </el-tab-pane>
     </el-tabs>
   </div>

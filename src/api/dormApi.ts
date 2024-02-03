@@ -143,3 +143,24 @@ export function delRooms(roomIds: Array<number>) {
         data: roomIds
     });
 }
+
+/**
+ * 修改宿舍房间
+ * 仅管理员
+ * @param dormId 宿舍楼 ID
+ * @param roomId 房间 ID
+ * @param name 房间名
+ * @param totalBeds 房间总床位
+ */
+export function updateRoom(dormId: number, roomId: number, name: string, totalBeds: number) {
+    return service({
+        url: '/dorm/room',
+        method: 'PUT',
+        data: {
+            dormitoryId: dormId,
+            roomId: roomId,
+            name: name,
+            totalBeds: totalBeds
+        }
+    });
+}
