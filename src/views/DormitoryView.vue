@@ -10,7 +10,7 @@ import {
   delDormAdmins,
   dormsByPage,
   updateDorm,
-  roomsByPage, addRooms, delRooms, updateRoom
+  roomsByPage, addRooms, delRooms, updateRoom, updateRoomUsers
 } from '../api/dormApi';
 import {errorMsg, successMsg, warningConfirmBox} from '../utils/MyUtils';
 import {GenderEnum} from '../models/GenderEnum';
@@ -19,6 +19,7 @@ import {RouterViews} from '../router/RouterViews';
 import {StoreEnum} from '../models/StoreEnum';
 import {User} from '../models/User';
 import {Room} from '../models/Room';
+import {studentByKey} from "../api/userApi.ts";
 
 
 const router = useRouter();
@@ -104,12 +105,28 @@ const tabRoomDialogEditRoomForm = reactive({
   totalBeds: 0,
 });
 
+// 宿舍房间添加学生，学生选择器接口
+interface StudentItem {
+  value: User,
+  label: string
+}
+
 // 添加学生对话框是否显示
 const tabRoomDialogAddStudentVisible = ref(false);
 // 添加学生对话框表单
 const tabRoomDialogAddStudentForm = reactive({
   // 房间 ID
   roomId: -1,
+  // 房间名
+  roomName: '',
+  // 房间总床位
+  totalBeds: 0,
+  // 学生选择器是否在加载中
+  loading: false,
+  // 从远程获取的学生
+  students: Array<StudentItem>(),
+  // 学生选择器，用户输入的数据
+  value: [],
 });
 
 
@@ -421,6 +438,18 @@ const onTabRoomTableEditClick = (room: Room) => {
 const onTabRoomTableAddStudentClick = (room: Room) => {
   // 将当前房间数据写到添加学生对话框表单中
   tabRoomDialogAddStudentForm.roomId = room.roomId;
+  tabRoomDialogAddStudentForm.roomName = room.name;
+  tabRoomDialogAddStudentForm.totalBeds = room.totalBeds;
+
+  let studentItems = Array<StudentItem>();
+  let studentIds = Array<number>();
+  room.users?.forEach((user) => {
+    studentItems.push({value: user, label: user.id + ' - ' + user.name});
+    studentIds.push(user.userId);
+  });
+  tabRoomDialogAddStudentForm.students = studentItems;
+  tabRoomDialogAddStudentForm.value = studentIds;
+
   // 显示编辑房间对话框
   tabRoomDialogAddStudentVisible.value = true;
 }
@@ -500,7 +529,7 @@ const onDialogAddRoomSaveClick = () => {
     // 添加成功
     successMsg('添加成功')
     // 清空添加房间对话框表单
-    clearDialogAddRoomFormat();
+    clearDialogAddRoomForm();
     // 关闭添加房间对话框
     tabRoomDialogAddRoomVisible.value = false;
 
@@ -516,7 +545,7 @@ const onDialogAddRoomSaveClick = () => {
 /**
  * 清空添加房间对话框表单
  */
-const clearDialogAddRoomFormat = () => {
+const clearDialogAddRoomForm = () => {
   tabRoomDialogAddRoomForm.dormId = '';
   tabRoomDialogAddRoomForm.roomName = '';
 }
@@ -551,7 +580,7 @@ const onTabRoomToolBarDeleteClick = () => {
 /**
  * 清空编辑房间对话框表单
  */
-const clearDialogEditRoomFormat = () => {
+const clearDialogEditRoomForm = () => {
   tabRoomDialogEditRoomForm.dormId = -1;
   tabRoomDialogEditRoomForm.roomId = -1;
   tabRoomDialogEditRoomForm.roomName = '';
@@ -580,11 +609,69 @@ const onDialogEditRoomSaveClick = () => {
     // 刷新房间数据
     tabRoomRefreshRooms();
     // 清空编辑对话框表单内容
-    clearDialogEditRoomFormat();
+    clearDialogEditRoomForm();
   }).catch((err) => {
     // 修改失败
     errorMsg(err);
   });
+}
+
+
+/**
+ * “宿舍房间”选项卡，添加学生对话框，学生选择器从服务器获取学生事件
+ * @param key 学生选择器中输入的关键词
+ */
+const tabRoomDialogAddStudentGetStudents = (key: string) => {
+  // 如果关键词不为空，就去服务器检索
+  if (key) {
+    // 首先清空之前获取的所有符合关键词的学生列表
+    tabRoomDialogAddStudentForm.students.length = 0;
+    // 标记正在加载
+    tabRoomDialogAddStudentForm.loading = true;
+    // 根据关键词获取学生
+    studentByKey(key).then((res) => {
+      let students = res.data as Array<User>;
+      students.forEach((stu) => {
+        tabRoomDialogAddStudentForm.students
+            .push({value: stu, label: stu.id + ' - ' + stu.name} as StudentItem)
+      });
+      tabRoomDialogAddStudentForm.loading = false;
+    }).catch((err) => {
+      errorMsg(err);
+      tabRoomDialogAddStudentForm.students.length = 0;
+      tabRoomDialogAddStudentForm.loading = false;
+    });
+  }
+}
+
+/**
+ * “宿舍房间”选项卡，清除宿舍房间添加学生表单
+ */
+const clearDialogAddStudentForm = () => {
+  tabRoomDialogAddStudentForm.roomId = -1;
+  tabRoomDialogAddStudentForm.roomName = '';
+  tabRoomDialogAddStudentForm.totalBeds = 0;
+  tabRoomDialogAddStudentForm.loading = false;
+  tabRoomDialogAddStudentForm.students = [];
+  tabRoomDialogAddStudentForm.value = [];
+}
+
+/**
+ * “宿舍房间”选项卡，宿舍房间添加学生对话框保存按钮点击事件
+ */
+const onDialogAddStudentSaveClick = () => {
+  // 修改宿舍住户
+  updateRoomUsers(tabRoomDialogAddStudentForm.roomId, tabRoomDialogAddStudentForm.value).then(() => {
+    successMsg('保存成功');
+    // 关闭添加学生对话框
+    tabRoomDialogAddStudentVisible.value = false;
+    // 清除表单内容
+    clearDialogAddStudentForm();
+    // 刷新当前宿舍楼所有房间信息
+    tabRoomRefreshRooms();
+  }).catch((err) => {
+    errorMsg(err);
+  })
 }
 </script>
 
@@ -723,7 +810,8 @@ const onDialogEditRoomSaveClick = () => {
             <el-table-column fixed="right" label="操作" width="180">
               <template #default=scope>
                 <el-button link type="primary" size="small" @click="onTabRoomTableEditClick(scope.row)">编辑</el-button>
-                <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">添加学生</el-button>
+                <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">添加学生
+                </el-button>
                 <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
               </template>
             </el-table-column>
@@ -785,15 +873,36 @@ const onDialogEditRoomSaveClick = () => {
 
         <!-- 添加学生对话框 -->
         <el-dialog v-model="tabRoomDialogAddStudentVisible" title="添加学生" draggable>
-          <el-form class="register-form" :model="tabRoomDialogEditRoomForm" label-position="left" label-width="85px">
+          <el-form class="register-form" :model="tabRoomDialogAddStudentForm" label-position="left" label-width="85px">
             <el-form-item label="房间名">
-              <el-input v-model="tabRoomDialogEditRoomForm.roomName" placeholder="房间名称"></el-input>
+              <el-text>{{ tabRoomDialogAddStudentForm.roomName }}</el-text>
+            </el-form-item>
+            <el-form-item label="选择学生">
+              <el-select
+                  v-model="tabRoomDialogAddStudentForm.value"
+                  multiple
+                  filterable
+                  remote
+                  reserve-keyword
+                  clearable
+                  placeholder="关键字：学号、姓名、电话"
+                  :multiple-limit="tabRoomDialogAddStudentForm.totalBeds"
+                  :remote-method="tabRoomDialogAddStudentGetStudents"
+                  :loading="tabRoomDialogAddStudentForm.loading"
+              >
+                <el-option
+                    v-for="stu in tabRoomDialogAddStudentForm.students"
+                    :key="stu.value.userId"
+                    :label="stu.label"
+                    :value="stu.value.userId"
+                />
+              </el-select>
             </el-form-item>
           </el-form>
           <template #footer>
             <span class="dialog-footer">
-              <el-button @click="tabRoomDialogEditRoomVisible = false">取消</el-button>
-              <el-button type="primary" @click="onDialogEditRoomSaveClick">添加</el-button>
+              <el-button @click="tabRoomDialogAddStudentVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogAddStudentSaveClick">保存</el-button>
             </span>
           </template>
         </el-dialog>

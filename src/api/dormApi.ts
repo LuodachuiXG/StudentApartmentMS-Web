@@ -164,3 +164,20 @@ export function updateRoom(dormId: number, roomId: number, name: string, totalBe
         }
     });
 }
+
+/**
+ * 修改宿舍房间住户
+ * 仅管理员
+ * @param roomId 房间 ID
+ * @param userIds 用户 ID 数组
+ */
+export function updateRoomUsers(roomId: number, userIds: Array<number>) {
+    return service({
+        url: '/dorm/room_user',
+        method: 'PUT',
+        data: {
+            roomId: roomId,
+            userIds: userIds
+        }
+    });
+}

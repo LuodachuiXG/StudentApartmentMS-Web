@@ -15,5 +15,5 @@ export interface Room {
     // 房间总床位
     totalBeds: number;
     // 房间住户
-    users: User | null;
+    users: Array<User> | null;
 }

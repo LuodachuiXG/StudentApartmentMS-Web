@@ -110,6 +110,19 @@ export function userByKeyAndPage(key: string, page: number, size: number) {
 }
 
 /**
+ * 关键词获取学生信息，只有（userId、id、name三个字段）
+ * 关键词：学号、姓名、电话
+ * 仅管理员
+ * @param key 查询的关键词
+ */
+export function studentByKey(key: string) {
+    return service({
+        url: `/user/student/${key}`,
+        method: 'GET'
+    });
+}
+
+/**
  * 批量删除用户
  * 仅管理员
  * @param userIds 用户 ID 集合
