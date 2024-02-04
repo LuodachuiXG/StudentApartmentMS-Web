@@ -241,3 +241,14 @@ export function getAdminsByDormId(dormId: number) {
         method: 'GET'
     });
 }
+
+/**
+ * 根据学生用户 ID 获取学生入住的宿舍房间信息
+ * @param userId 学生用户 ID
+ */
+export function getStudentRoomInfoByUserId(userId: number) {
+    return service({
+        url: `/dorm/student/${userId}`,
+        method: 'GET'
+    });
+}

@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import {onMounted, ref, reactive} from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import {Dorm} from '../models/Dorm';
 import {Pager} from '../models/Pager';
 import {
   addDorm,
   addDormAdmins,
+  addRooms,
   allDorms,
   delDorm,
   delDormAdmins,
-  dormsByPage,
+  delRooms,
+  dormsByPage, getStudentRoomInfoByUserId,
+  roomsByPage,
   updateDorm,
-  roomsByPage, addRooms, delRooms, updateRoom, updateRoomUsers
+  updateRoom,
+  updateRoomUsers
 } from '../api/dormApi';
 import {errorMsg, successMsg, warningConfirmBox} from '../utils/MyUtils';
 import {GenderEnum} from '../models/GenderEnum';
@@ -20,9 +24,14 @@ import {StoreEnum} from '../models/StoreEnum';
 import {User} from '../models/User';
 import {Room} from '../models/Room';
 import {studentByKey} from "../api/userApi.ts";
+import {RoleEnum} from "../models/RoleEnum.ts";
+import {StudentRoomInfo} from "../models/StudentRoomInfo.ts";
 
 
 const router = useRouter();
+
+// 当前登录的用户
+const user = ref<User>();
 
 // 选项卡当前选择项
 const tabPaneCurrent = ref('0');
@@ -129,13 +138,28 @@ const tabRoomDialogAddStudentForm = reactive({
   value: [],
 });
 
+// 学生界面，当前学生入住的宿舍信息
+const currentStudentRoom = ref<StudentRoomInfo>({});
+
 
 /**
  * Vue 生命周期挂载
  */
 onMounted(() => {
-  // 刷新宿舍信息
-  tabDormRefreshDorms();
+  // 获取当前登录用户
+  user.value = JSON.parse(localStorage.getItem(StoreEnum.USER)) as User;
+  // 判断当前用户是否是管理员
+  if (user.value?.role === RoleEnum.ADMIN) {
+    // 刷新宿舍信息
+    tabDormRefreshDorms();
+  } else {
+    // 获取当前学生被分配的宿舍信息
+    getStudentRoomInfoByUserId(user.value?.userId).then((res) => {
+      currentStudentRoom.value = res.data as StudentRoomInfo;
+    }).catch((err) => {
+      errorMsg(err);
+    });
+  }
 });
 
 /**
@@ -677,237 +701,317 @@ const onDialogAddStudentSaveClick = () => {
 
 <template>
   <div class="container">
-    <el-tabs stretch @tab-change="onTabChange" v-model="tabPaneCurrent">
-      <el-tab-pane label="宿舍楼">
-        <div class="button-group">
-          <el-button plain type="primary" @click="onTabDormToolBarAddDormClick">添加宿舍楼</el-button>
-        </div>
-        <div class="table">
-          <!-- 表格，显示宿舍楼 -->
-          <el-table class="table" :data="tabDormPages?.data" border height="70vh"
-                    :default-sort="{ prop: 'birth', order: 'descending' }">
-            <el-table-column fixed prop="name" label="宿舍楼名" width="130" sortable/>
-            <el-table-column fixed prop="totalBeds" label="总床位" width="130" sortable/>
-            <el-table-column fixed prop="headCount" label="入住人数" width="130" sortable/>
-            <el-table-column fixed="right" label="宿舍管理员">
-              <template #default="scope">
-                <div>
-                  <el-popover :width="300" :title="user.name" v-for="user in scope.row.admins" :key="user.userId">
-                    <template #reference>
-                      <el-tag round @click="onDormTableUserTagClick(user.id)"
-                              style="margin-right: 5px; cursor: pointer;"
-                              type="warning">
-                        {{ user.name }}
-                      </el-tag>
-                    </template>
-                    <template #default>
-                      <div style="display: flex; gap: 10px; flex-direction: column">
-                        <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
-                        <p>工号：{{ user.id }}</p>
-                        <p>电话：{{ user.phone }}</p>
-                      </div>
-                    </template>
-                  </el-popover>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column fixed="right" label="操作" width="180">
-              <template #default=scope>
-                <el-button link type="primary" size="small" @click="onDormTableEditClick(scope.row)">编辑</el-button>
-                <el-button link type="primary" size="small" @click="onDormTableViewRoomClick(scope.row)">查看房间
-                </el-button>
-                <el-button link type="danger" size="small" @click="onDormTableDelClick(scope.row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        <!-- 页码组件 -->
-        <div class="pagination-div">
-          <el-pagination class="pagination" :page-size="tabDormPages?.size" layout="total, prev, pager, next, sizes"
-                         :current-page="tabDormsCurrentPage" :total="tabDormPages?.totalData"
-                         @current-change="onDormTableCurrentPageChange" @size-change="onDormTableSizeChangChange"/>
-        </div>
-
-
-        <!-- 修改宿舍对话框 -->
-        <el-dialog v-model="tabDormDialogEditDormVisible" title="编辑宿舍" draggable>
-          <el-form class="register-form" :model="tabDormDialogEditDormForm" label-position="left" label-width="85px">
-            <el-form-item label="宿舍楼名">
-              <el-input v-model="tabDormDialogEditDormForm.name" placeholder="宿舍楼名称"></el-input>
+    <!-- 学生用户显示的界面 -->
+    <div v-if="user!== undefined && user.role===RoleEnum.STUDENT">
+      <el-card class="box-card">
+        <template #header>
+          <div class="card-header">
+            <span>{{ user.name }} 同学的宿舍信息</span>
+          </div>
+        </template>
+        <div v-if="currentStudentRoom.dormName!=null">
+          <el-form>
+            <el-form-item label="宿舍：">
+              <el-text type="primary">{{ currentStudentRoom.dormName }}</el-text>
             </el-form-item>
-            <el-form-item label="管理该宿舍">
-              <el-switch v-model="tabDormDialogEditDormForm.isAdminValue"/>
+            <el-form-item label="房间：">
+              <el-text type="primary">{{ currentStudentRoom.roomName }}</el-text>
+            </el-form-item>
+            <el-form-item label="房间床位数：">
+              <el-text type="primary">{{ currentStudentRoom.totalBeds }}</el-text>
+            </el-form-item>
+            <el-form-item label="舍友：">
+              <el-popover v-if="currentStudentRoom.roomMates !== undefined && currentStudentRoom.roomMates.length > 0"
+                          :width="300" :title="user.name"
+                          v-for="user in currentStudentRoom.roomMates"
+                          :key="user.userId">
+                <template #reference>
+                  <el-tag round
+                          style="margin-right: 5px; cursor: default;"
+                          type="warning">
+                    {{ user.name }}
+                  </el-tag>
+                </template>
+                <template #default>
+                  <div style="display: flex; gap: 10px; flex-direction: column">
+                    <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
+                    <p>学号：{{ user.id }}</p>
+                    <p>电话：{{ user.phone }}</p>
+                  </div>
+                </template>
+              </el-popover>
+              <el-tag v-else round style="margin-right: 5px; cursor: default;" type="info">
+                暂无
+              </el-tag>
             </el-form-item>
           </el-form>
-          <template #footer>
+        </div>
+        <div v-else>
+          <el-text type="danger">你还没有分配宿舍，请及时联系宿舍管理员处理。</el-text>
+        </div>
+        <template #footer>
+          {{ currentStudentRoom.dormName }} 宿舍楼管理员：
+          <el-popover v-if="currentStudentRoom.admins !== undefined && currentStudentRoom.admins.length > 0"
+                      :width="300" :title="user.name" v-for="user in currentStudentRoom.admins"
+                      :key="user.userId">
+            <template #reference>
+              <el-tag round
+                      style="margin-right: 5px; cursor: default;">
+                {{ user.name }}
+              </el-tag>
+            </template>
+            <template #default>
+              <div style="display: flex; gap: 10px; flex-direction: column">
+                <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
+                <p>工号：{{ user.id }}</p>
+                <p>电话：{{ user.phone }}</p>
+              </div>
+            </template>
+          </el-popover>
+          <el-tag v-else round style="margin-right: 5px; cursor: default;" type="info">
+            暂无
+          </el-tag>
+        </template>
+      </el-card>
+    </div>
+
+    <!-- 管理员用户显示的界面 -->
+    <div v-else>
+      <el-tabs stretch @tab-change="onTabChange" v-model="tabPaneCurrent">
+        <el-tab-pane label="宿舍楼">
+          <div class="button-group">
+            <el-button plain type="primary" @click="onTabDormToolBarAddDormClick">添加宿舍楼</el-button>
+          </div>
+          <div class="table">
+            <!-- 表格，显示宿舍楼 -->
+            <el-table class="table" :data="tabDormPages?.data" border height="70vh"
+                      :default-sort="{ prop: 'birth', order: 'descending' }">
+              <el-table-column fixed prop="name" label="宿舍楼名" width="130" sortable/>
+              <el-table-column fixed prop="totalBeds" label="总床位" width="130" sortable/>
+              <el-table-column fixed prop="headCount" label="入住人数" width="130" sortable/>
+              <el-table-column fixed="right" label="宿舍管理员">
+                <template #default="scope">
+                  <div>
+                    <el-popover :width="300" :title="user.name" v-for="user in scope.row.admins" :key="user.userId">
+                      <template #reference>
+                        <el-tag round @click="onDormTableUserTagClick(user.id)"
+                                style="margin-right: 5px; cursor: pointer;"
+                                type="warning">
+                          {{ user.name }}
+                        </el-tag>
+                      </template>
+                      <template #default>
+                        <div style="display: flex; gap: 10px; flex-direction: column">
+                          <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
+                          <p>工号：{{ user.id }}</p>
+                          <p>电话：{{ user.phone }}</p>
+                        </div>
+                      </template>
+                    </el-popover>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column fixed="right" label="操作" width="180">
+                <template #default=scope>
+                  <el-button link type="primary" size="small" @click="onDormTableEditClick(scope.row)">编辑</el-button>
+                  <el-button link type="primary" size="small" @click="onDormTableViewRoomClick(scope.row)">查看房间
+                  </el-button>
+                  <el-button link type="danger" size="small" @click="onDormTableDelClick(scope.row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <!-- 页码组件 -->
+          <div class="pagination-div">
+            <el-pagination class="pagination" :page-size="tabDormPages?.size" layout="total, prev, pager, next, sizes"
+                           :current-page="tabDormsCurrentPage" :total="tabDormPages?.totalData"
+                           @current-change="onDormTableCurrentPageChange" @size-change="onDormTableSizeChangChange"/>
+          </div>
+
+
+          <!-- 修改宿舍对话框 -->
+          <el-dialog v-model="tabDormDialogEditDormVisible" title="编辑宿舍" draggable>
+            <el-form class="register-form" :model="tabDormDialogEditDormForm" label-position="left" label-width="85px">
+              <el-form-item label="宿舍楼名">
+                <el-input v-model="tabDormDialogEditDormForm.name" placeholder="宿舍楼名称"></el-input>
+              </el-form-item>
+              <el-form-item label="管理该宿舍">
+                <el-switch v-model="tabDormDialogEditDormForm.isAdminValue"/>
+              </el-form-item>
+            </el-form>
+            <template #footer>
             <span class="dialog-footer">
               <el-button @click="tabDormDialogEditDormVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogEditDormSaveClick">保存</el-button>
             </span>
-          </template>
-        </el-dialog>
+            </template>
+          </el-dialog>
 
 
-        <!-- 添加宿舍对话框 -->
-        <el-dialog v-model="tabDormDialogAddDormVisible" title="添加宿舍" draggable>
-          <el-form class="register-form" :model="tabDormDialogAddDormForm" label-position="left" label-width="85px">
-            <el-form-item label="宿舍楼名">
-              <el-input v-model="tabDormDialogAddDormForm.name" placeholder="宿舍楼名称"></el-input>
-            </el-form-item>
-          </el-form>
-          <template #footer>
+          <!-- 添加宿舍对话框 -->
+          <el-dialog v-model="tabDormDialogAddDormVisible" title="添加宿舍" draggable>
+            <el-form class="register-form" :model="tabDormDialogAddDormForm" label-position="left" label-width="85px">
+              <el-form-item label="宿舍楼名">
+                <el-input v-model="tabDormDialogAddDormForm.name" placeholder="宿舍楼名称"></el-input>
+              </el-form-item>
+            </el-form>
+            <template #footer>
             <span class="dialog-footer">
               <el-button @click="tabDormDialogAddDormVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogAddDormSaveClick">添加</el-button>
             </span>
-          </template>
-        </el-dialog>
-      </el-tab-pane>
+            </template>
+          </el-dialog>
+        </el-tab-pane>
 
 
-      <!-- 宿舍房间选项卡 -->
-      <el-tab-pane label="宿舍房间">
-        <div class="button-group">
-          <el-select v-model="tabRoomCurrentSelectDorm" @change="onTabRoomDormSelectChange" placeholder="选择宿舍楼"
-                     style="width: 200px; margin-right: 10px;">
-            <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
-          </el-select>
-          <el-button plain type="primary" @click="onTabRoomToolBarAddRoomClick">添加房间</el-button>
-          <el-button type="danger" plain @click="onTabRoomToolBarDeleteClick"
-                     :disabled="tabRoomSelectedRooms == null || tabRoomSelectedRooms.length == 0">删除
-          </el-button>
-        </div>
-        <div class="table">
-          <!-- 表格，显示宿舍楼 -->
-          <el-table class="table" :data="tabRoomPages?.data" border height="70vh"
-                    @selection-change="onTabRoomTableSelectChange"
-                    :default-sort="{ prop: 'birth', order: 'descending' }">
-            <el-table-column type="selection" width="55"/>
-            <el-table-column fixed prop="name" label="房间名" width="130"/>
-            <el-table-column fixed prop="totalBeds" label="总床位" width="130" sortable/>
-            <el-table-column fixed prop="headCount" label="入住人数" width="130" sortable/>
-            <el-table-column fixed="right" label="房间住户">
-              <template #default="scope">
-                <div>
-                  <el-popover :width="300" :title="user.name" v-for="user in scope.row.users" :key="user.userId">
-                    <template #reference>
-                      <el-tag round @click="onDormTableUserTagClick(user.id)"
-                              style="margin-right: 5px; cursor: pointer;">
-                        {{ user.name }}
-                      </el-tag>
-                    </template>
-                    <template #default>
-                      <div style="display: flex; gap: 10px; flex-direction: column">
-                        <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
-                        <p>学号：{{ user.id }}</p>
-                        <p>电话：{{ user.phone }}</p>
-                      </div>
-                    </template>
-                  </el-popover>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column fixed="right" label="操作" width="180">
-              <template #default=scope>
-                <el-button link type="primary" size="small" @click="onTabRoomTableEditClick(scope.row)">编辑</el-button>
-                <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">修改住户
-                </el-button>
-                <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        <!-- 页码组件 -->
-        <div class="pagination-div">
-          <el-pagination class="pagination" :page-size="tabRoomPages?.size" layout="total, prev, pager, next, sizes"
-                         :current-page="tabRoomsCurrentPage" :total="tabRoomPages?.totalData"
-                         @current-change="onRoomTableCurrentPageChange" @size-change="onRoomTableSizeChangChange"/>
-        </div>
+        <!-- 宿舍房间选项卡 -->
+        <el-tab-pane label="宿舍房间">
+          <div class="button-group">
+            <el-select v-model="tabRoomCurrentSelectDorm" @change="onTabRoomDormSelectChange" placeholder="选择宿舍楼"
+                       style="width: 200px; margin-right: 10px;">
+              <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
+            </el-select>
+            <el-button plain type="primary" @click="onTabRoomToolBarAddRoomClick">添加房间</el-button>
+            <el-button type="danger" plain @click="onTabRoomToolBarDeleteClick"
+                       :disabled="tabRoomSelectedRooms == null || tabRoomSelectedRooms.length == 0">删除
+            </el-button>
+          </div>
+          <div class="table">
+            <!-- 表格，显示宿舍楼 -->
+            <el-table class="table" :data="tabRoomPages?.data" border height="70vh"
+                      @selection-change="onTabRoomTableSelectChange"
+                      :default-sort="{ prop: 'birth', order: 'descending' }">
+              <el-table-column type="selection" width="55"/>
+              <el-table-column fixed prop="name" label="房间名" width="130"/>
+              <el-table-column fixed prop="totalBeds" label="总床位" width="130" sortable/>
+              <el-table-column fixed prop="headCount" label="入住人数" width="130" sortable/>
+              <el-table-column fixed="right" label="房间住户">
+                <template #default="scope">
+                  <div>
+                    <el-popover :width="300" :title="user.name" v-for="user in scope.row.users" :key="user.userId">
+                      <template #reference>
+                        <el-tag round @click="onDormTableUserTagClick(user.id)"
+                                style="margin-right: 5px; cursor: pointer;">
+                          {{ user.name }}
+                        </el-tag>
+                      </template>
+                      <template #default>
+                        <div style="display: flex; gap: 10px; flex-direction: column">
+                          <p>性别：{{ user.gender === GenderEnum.MALE ? '男' : '女' }}</p>
+                          <p>学号：{{ user.id }}</p>
+                          <p>电话：{{ user.phone }}</p>
+                        </div>
+                      </template>
+                    </el-popover>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column fixed="right" label="操作" width="180">
+                <template #default=scope>
+                  <el-button link type="primary" size="small" @click="onTabRoomTableEditClick(scope.row)">编辑
+                  </el-button>
+                  <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">修改住户
+                  </el-button>
+                  <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <!-- 页码组件 -->
+          <div class="pagination-div">
+            <el-pagination class="pagination" :page-size="tabRoomPages?.size" layout="total, prev, pager, next, sizes"
+                           :current-page="tabRoomsCurrentPage" :total="tabRoomPages?.totalData"
+                           @current-change="onRoomTableCurrentPageChange" @size-change="onRoomTableSizeChangChange"/>
+          </div>
 
 
-        <!-- 添加宿舍房间对话框 -->
-        <el-dialog v-model="tabRoomDialogAddRoomVisible" title="添加房间" draggable>
-          <el-form class="register-form" :model="tabRoomDialogAddRoomForm" label-position="left" label-width="85px">
-            <el-form-item label="宿舍楼">
-              <el-select v-model="tabRoomDialogAddRoomForm.dormId" placeholder="选择宿舍楼"
-                         style="width: 200px; margin-right: 10px;">
-                <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
-              </el-select>
-            </el-form-item>
-            <el-form-item label="房间名">
-              <el-input v-model="tabRoomDialogAddRoomForm.roomName"
-                        placeholder="房间名（多个房间用英文逗号隔开）"></el-input>
-            </el-form-item>
-            <el-form-item label="房间床位">
-              <el-input v-model="tabRoomDialogAddRoomForm.totalBeds" placeholder="房间可用床位"
-                        type="number"></el-input>
-            </el-form-item>
-          </el-form>
-          <template #footer>
+          <!-- 添加宿舍房间对话框 -->
+          <el-dialog v-model="tabRoomDialogAddRoomVisible" title="添加房间" draggable>
+            <el-form class="register-form" :model="tabRoomDialogAddRoomForm" label-position="left" label-width="85px">
+              <el-form-item label="宿舍楼">
+                <el-select v-model="tabRoomDialogAddRoomForm.dormId" placeholder="选择宿舍楼"
+                           style="width: 200px; margin-right: 10px;">
+                  <el-option v-for="dorm in tabRoomDorms" :label="dorm.name" :value="dorm.dormitoryId"/>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="房间名">
+                <el-input v-model="tabRoomDialogAddRoomForm.roomName"
+                          placeholder="房间名（多个房间用英文逗号隔开）"></el-input>
+              </el-form-item>
+              <el-form-item label="房间床位">
+                <el-input v-model="tabRoomDialogAddRoomForm.totalBeds" placeholder="房间可用床位"
+                          type="number"></el-input>
+              </el-form-item>
+            </el-form>
+            <template #footer>
             <span class="dialog-footer">
               <el-button @click="tabRoomDialogAddRoomVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogAddRoomSaveClick">添加</el-button>
             </span>
-          </template>
-        </el-dialog>
+            </template>
+          </el-dialog>
 
 
-        <!-- 修改宿舍对话框 -->
-        <el-dialog v-model="tabRoomDialogEditRoomVisible" title="编辑房间" draggable>
-          <el-form class="register-form" :model="tabRoomDialogEditRoomForm" label-position="left" label-width="85px">
-            <el-form-item label="房间名">
-              <el-input v-model="tabRoomDialogEditRoomForm.roomName" placeholder="房间名称"></el-input>
-            </el-form-item>
-            <el-form-item label="总床位">
-              <el-input v-model="tabRoomDialogEditRoomForm.totalBeds" placeholder="房间总床位" type="number"></el-input>
-            </el-form-item>
-          </el-form>
-          <template #footer>
+          <!-- 修改宿舍对话框 -->
+          <el-dialog v-model="tabRoomDialogEditRoomVisible" title="编辑房间" draggable>
+            <el-form class="register-form" :model="tabRoomDialogEditRoomForm" label-position="left" label-width="85px">
+              <el-form-item label="房间名">
+                <el-input v-model="tabRoomDialogEditRoomForm.roomName" placeholder="房间名称"></el-input>
+              </el-form-item>
+              <el-form-item label="总床位">
+                <el-input v-model="tabRoomDialogEditRoomForm.totalBeds" placeholder="房间总床位"
+                          type="number"></el-input>
+              </el-form-item>
+            </el-form>
+            <template #footer>
             <span class="dialog-footer">
               <el-button @click="tabRoomDialogEditRoomVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogEditRoomSaveClick">保存</el-button>
             </span>
-          </template>
-        </el-dialog>
+            </template>
+          </el-dialog>
 
 
-        <!-- 添加学生对话框 -->
-        <el-dialog v-model="tabRoomDialogAddStudentVisible" title="添加学生" draggable>
-          <el-form class="register-form" :model="tabRoomDialogAddStudentForm" label-position="left" label-width="85px">
-            <el-form-item label="房间名">
-              <el-input v-model="tabRoomDialogAddStudentForm.roomName" readonly />
-            </el-form-item>
-            <el-form-item label="选择学生">
-              <el-select
-                  v-model="tabRoomDialogAddStudentForm.value"
-                  multiple
-                  filterable
-                  remote
-                  reserve-keyword
-                  clearable
-                  placeholder="关键字：学号、姓名、电话"
-                  :multiple-limit="tabRoomDialogAddStudentForm.totalBeds"
-                  :remote-method="tabRoomDialogAddStudentGetStudents"
-                  :loading="tabRoomDialogAddStudentForm.loading"
-              >
-                <el-option
-                    v-for="stu in tabRoomDialogAddStudentForm.students"
-                    :key="stu.value.userId"
-                    :label="stu.label"
-                    :value="stu.value.userId"
-                />
-              </el-select>
-            </el-form-item>
-          </el-form>
-          <template #footer>
+          <!-- 添加学生对话框 -->
+          <el-dialog v-model="tabRoomDialogAddStudentVisible" title="添加学生" draggable>
+            <el-form class="register-form" :model="tabRoomDialogAddStudentForm" label-position="left"
+                     label-width="85px">
+              <el-form-item label="房间名">
+                <el-input v-model="tabRoomDialogAddStudentForm.roomName" readonly/>
+              </el-form-item>
+              <el-form-item label="选择学生">
+                <el-select
+                    v-model="tabRoomDialogAddStudentForm.value"
+                    multiple
+                    filterable
+                    remote
+                    reserve-keyword
+                    clearable
+                    placeholder="关键字：学号、姓名、电话"
+                    :multiple-limit="tabRoomDialogAddStudentForm.totalBeds"
+                    :remote-method="tabRoomDialogAddStudentGetStudents"
+                    :loading="tabRoomDialogAddStudentForm.loading"
+                >
+                  <el-option
+                      v-for="stu in tabRoomDialogAddStudentForm.students"
+                      :key="stu.value.userId"
+                      :label="stu.label"
+                      :value="stu.value.userId"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-form>
+            <template #footer>
             <span class="dialog-footer">
               <el-button @click="tabRoomDialogAddStudentVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogAddStudentSaveClick">保存</el-button>
             </span>
-          </template>
-        </el-dialog>
-      </el-tab-pane>
-    </el-tabs>
+            </template>
+          </el-dialog>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
   </div>
 </template>
 
