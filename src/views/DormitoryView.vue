@@ -784,8 +784,8 @@ const onDialogAddStudentSaveClick = () => {
                     :default-sort="{ prop: 'birth', order: 'descending' }">
             <el-table-column type="selection" width="55"/>
             <el-table-column fixed prop="name" label="房间名" width="130"/>
-            <el-table-column fixed prop="totalBeds" label="总床位" width="130"/>
-            <el-table-column fixed prop="headCount" label="入住人数" width="130"/>
+            <el-table-column fixed prop="totalBeds" label="总床位" width="130" sortable/>
+            <el-table-column fixed prop="headCount" label="入住人数" width="130" sortable/>
             <el-table-column fixed="right" label="房间住户">
               <template #default="scope">
                 <div>
@@ -810,7 +810,7 @@ const onDialogAddStudentSaveClick = () => {
             <el-table-column fixed="right" label="操作" width="180">
               <template #default=scope>
                 <el-button link type="primary" size="small" @click="onTabRoomTableEditClick(scope.row)">编辑</el-button>
-                <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">添加学生
+                <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">修改住户
                 </el-button>
                 <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
               </template>
@@ -875,7 +875,7 @@ const onDialogAddStudentSaveClick = () => {
         <el-dialog v-model="tabRoomDialogAddStudentVisible" title="添加学生" draggable>
           <el-form class="register-form" :model="tabRoomDialogAddStudentForm" label-position="left" label-width="85px">
             <el-form-item label="房间名">
-              <el-text>{{ tabRoomDialogAddStudentForm.roomName }}</el-text>
+              <el-input v-model="tabRoomDialogAddStudentForm.roomName" readonly />
             </el-form-item>
             <el-form-item label="选择学生">
               <el-select

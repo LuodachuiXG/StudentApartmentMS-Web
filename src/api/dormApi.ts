@@ -181,3 +181,63 @@ export function updateRoomUsers(roomId: number, userIds: Array<number>) {
         }
     });
 }
+
+/**
+ * 根据用户 ID 获取当前用户所住的房间信息
+ * 仅管理员
+ * @param userId 用户 ID
+ */
+export function roomByUserId(userId: number) {
+    return service({
+        url: `/dorm/room/user/${userId}`,
+        method: 'GET'
+    });
+}
+
+/**
+ * 根据宿舍楼 ID 获取所有房间
+ * 仅管理员
+ * @param dormId 宿舍楼 ID
+ */
+export function roomsByDormID(dormId: number) {
+    return service({
+        url: `/dorm/room/${dormId}`,
+        method: 'GET'
+    });
+}
+
+/**
+ * 根据宿舍房间 ID 和用户 ID 修改用户入住的房间
+ * 仅管理员
+ * @param roomId 宿舍房间 ID
+ * @param userId 用户 ID
+ */
+export function updateRoomUserByRoomIdAndUserId(roomId: number, userId: number) {
+    return service({
+        url: `/dorm/room/${roomId}/${userId}`,
+        method: 'PUT'
+    });
+}
+
+/**
+ * 根据管理员用户 ID 获取其管理的宿舍楼信息
+ * 仅管理员
+ * @param userId 用户 ID
+ */
+export function getDormsByAdmin(userId: number) {
+    return service({
+        url: `/dorm/admin/${userId}`,
+        method: 'GET'
+    });
+}
+
+/**
+ * 根据宿舍楼 ID 获取对应宿舍的所有管理员用户信息
+ * @param dormId 宿舍楼 ID
+ */
+export function getAdminsByDormId(dormId: number) {
+    return service({
+        url: `/dorm/admin/dorm/${dormId}`,
+        method: 'GET'
+    });
+}

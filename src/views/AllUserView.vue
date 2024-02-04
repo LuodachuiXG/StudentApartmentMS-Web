@@ -7,6 +7,15 @@ import {RoleEnum} from '../models/RoleEnum';
 import {GenderEnum} from '../models/GenderEnum';
 import {errorMsg, formatDate, successMsg, warningConfirmBox} from '../utils/MyUtils';
 import {useRoute} from 'vue-router';
+import {
+  allDorms,
+  getDormsByAdmin,
+  roomByUserId,
+  roomsByDormID,
+  updateRoomUserByRoomIdAndUserId
+} from "../api/dormApi.ts";
+import {Room} from "../models/Room.ts";
+import {Dorm} from "../models/Dorm.ts";
 
 /**
  * 学生对话框模式枚举类
@@ -47,6 +56,23 @@ const dialogStudentForm = reactive({
   birth: ''
 });
 
+// 是否显示查看管理员信息对话框
+const dialogViewAdminVisible = ref(false);
+
+// 查看管理员信息对话框表单
+const viewAdminForm = reactive({
+  // 管理员工号
+  id: 0,
+  // 管理员姓名
+  name: '',
+  // 管理员电话
+  tel: '',
+  // 管理员性别
+  gender: '',
+  // 管理的宿舍
+  dorms: [],
+});
+
 // 是否显示聚合查找对话框
 const dialogSearchVisible = ref(false);
 
@@ -59,6 +85,28 @@ const searchKey = ref('');
 // 聚合查找表单
 const searchForm = reactive({
   key: ''
+});
+
+
+// 是否显示学生宿舍对话框
+const dialogStudentDormVisible = ref(false);
+
+// 学生宿舍对话框表单
+const studentDormForm = reactive({
+  // 用户 ID
+  userId: 0,
+  // 当前学生学号
+  id: 0,
+  // 当前学生姓名
+  name: '',
+  // 可选宿舍楼列表
+  dorms: [],
+  // 当前选择的宿舍楼
+  currentDormId: null,
+  // 可选宿舍房间列表
+  rooms: [],
+  // 当前选择的房间
+  currentRoomId: null,
 });
 
 /**
@@ -214,12 +262,108 @@ const onTableColEditClick = (user: User) => {
 }
 
 /**
- * 表格列删除按钮点击事件
- * @param userId 工号（学号）
- * @param name 用户姓名
+ * 表格列宿舍按钮点击事件
+ * @param user 学生实体类
  */
-const onTableColDeleteClick = (userId: number, name: string) => {
-  deleteUser(Array.of(userId), Array.of(name));
+const onTableViewDormClick = (user: User) => {
+  // 先清除之前表单的信息
+  clearStudentDormForm();
+
+  // 将当前学生用户 ID、学号和姓名添加到表单
+  studentDormForm.userId = user.userId;
+  studentDormForm.id = user.id;
+  studentDormForm.name = user.name;
+
+
+  // 获取所有宿舍
+  allDorms().then((dorms) => {
+    // 设置可选宿舍楼
+    studentDormForm.dorms = dorms.data;
+  }).catch((err) => {
+    errorMsg(err);
+  });
+
+  // 根据用户 ID 获取用户住的宿舍楼和房间信息
+  roomByUserId(user.userId).then((res) => {
+    // 如果宿舍房间信息不为空（用户已经入住某个房间）
+    if (res.data !== null) {
+      let room = res.data as Room;
+      // 将当前用户入住的房间和宿舍楼写入对话框表单
+      studentDormForm.currentDormId = room.dormitoryId;
+      studentDormForm.currentRoomId = room.roomId;
+      // 获取当前宿舍的所有可选宿舍楼
+      roomsByDormID(room.dormitoryId).then((rooms) => {
+        // 设置可选宿舍房间
+        studentDormForm.rooms = rooms.data;
+        // 显示对话框
+        dialogStudentDormVisible.value = true;
+      }).catch((err) => {
+        errorMsg(err);
+      });
+    } else {
+      // 显示对话框
+      dialogStudentDormVisible.value = true;
+    }
+  }).catch((err) => {
+    errorMsg('获取学生宿舍信息失败:' + err);
+  });
+}
+
+/**
+ * 学生宿舍对话框宿舍楼选择器选择改变事件
+ */
+const onDialogStudentDormSelectChange = () => {
+  // 先清除当前用户的房间，不然可能导致房间选择器显示错误
+  studentDormForm.currentRoomId = null;
+  // 获取当前宿舍的所有可选宿舍楼
+  roomsByDormID(studentDormForm.currentDormId).then((rooms) => {
+    // 设置可选宿舍房间
+    studentDormForm.rooms = rooms.data;
+  }).catch((err) => {
+    errorMsg(err);
+  });
+}
+
+/**
+ * 清除学生宿舍对话框表单
+ */
+const clearStudentDormForm = () => {
+  studentDormForm.userId = 0;
+  studentDormForm.id = 0;
+  studentDormForm.name = '';
+  studentDormForm.dorms = [];
+  studentDormForm.rooms = [];
+  studentDormForm.currentDormId = null;
+  studentDormForm.currentRoomId = null;
+}
+
+/**
+ * 表格列删除按钮点击事件
+ * @param user 用户实体类
+ */
+const onTableColDeleteClick = (user: User) => {
+  deleteUser(Array.of(user.userId), Array.of(user.name));
+}
+
+/**
+ * 表格列查看管理员按钮点击事件
+ * @param user 用户实体类
+ */
+const onTableViewAdminClick = (user: User) => {
+  // 将管理员信息添加到对话框表单
+  viewAdminForm.id = user.id;
+  viewAdminForm.name = user.name;
+  viewAdminForm.gender = user.gender;
+  viewAdminForm.tel = user.phone;
+
+  // 根据管理员获取其管理的宿舍
+  getDormsByAdmin(user.userId).then((res) => {
+    viewAdminForm.dorms = res.data as Array<Dorm>;
+    // 显示查看管理员对话框
+    dialogViewAdminVisible.value = true;
+  }).catch((err) => {
+    errorMsg(err);
+  });
 }
 
 /**
@@ -348,6 +492,21 @@ const onDialogSearchResettingClick = () => {
   dialogSearchVisible.value = false;
 }
 
+/**
+ * 学生宿舍对话框保存按钮点击事件
+ */
+const onDialogStudentDormClick = () => {
+  updateRoomUserByRoomIdAndUserId(studentDormForm.currentRoomId, studentDormForm.userId).then(() => {
+    successMsg('保存成功');
+    // 刷新用户信息
+    refreshTableData();
+    // 关闭对话框
+    dialogStudentDormVisible.value = false;
+  }).catch((err) => {
+    errorMsg(err);
+  });
+}
+
 
 </script>
 
@@ -369,8 +528,7 @@ const onDialogSearchResettingClick = () => {
     </div>
     <div class="table">
       <!-- 表格，显示用户 -->
-      <el-table class="table" :data="pages?.data" border height="77vh"
-                :default-sort="{ prop: 'birth', order: 'descending' }" @selection-change="onTableSelectChange">
+      <el-table class="table" :data="pages?.data" border height="77vh" @selection-change="onTableSelectChange">
         <el-table-column type="selection" width="55"/>
         <el-table-column fixed prop="id" label="工号（学号）" width="120"/>
         <el-table-column fixed prop="name" label="姓名" width="90"/>
@@ -390,13 +548,13 @@ const onDialogSearchResettingClick = () => {
             <!-- 管理员只能修改学生信息，不能修改管理员信息 -->
             <div v-if="scope.row.role === RoleEnum.STUDENT">
               <el-button link type="primary" size="small" @click="onTableColEditClick(scope.row)">编辑</el-button>
-              <el-button link type="primary" size="small">宿舍</el-button>
+              <el-button link type="primary" size="small" @click="onTableViewDormClick(scope.row)">宿舍</el-button>
               <el-button link type="danger" size="small"
-                         @click="onTableColDeleteClick(scope.row.userId, scope.row.name)">删除
+                         @click="onTableColDeleteClick(scope.row)">删除
               </el-button>
             </div>
             <div v-else>
-              <el-button link type="primary" size="small">查看</el-button>
+              <el-button link type="primary" size="small" @click="onTableViewAdminClick(scope.row)">查看</el-button>
             </div>
           </template>
         </el-table-column>
@@ -455,6 +613,47 @@ const onDialogSearchResettingClick = () => {
     </el-dialog>
 
 
+    <!-- 管理员“查看”对话框 -->
+    <el-dialog v-model="dialogViewAdminVisible" title="管理员信息" draggable>
+      <el-form class="register-form" :model="viewAdminForm" label-position="left" label-width="75px">
+        <el-form-item label="工号">
+          <el-input v-model="viewAdminForm.id" readonly/>
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="viewAdminForm.name" readonly/>
+        </el-form-item>
+        <el-form-item label="电话">
+          <el-input v-model="viewAdminForm.tel" readonly/>
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-input :model-value="viewAdminForm.gender === GenderEnum.MALE ? '男' : '女'" readonly/>
+        </el-form-item>
+        <el-form-item label="管理宿舍">
+          <el-popover v-if="viewAdminForm.dorms.length !== 0" :width="300" :title="dorm.name"
+                      v-for="dorm in viewAdminForm.dorms" :key="dorm.dormitoryId">
+            <template #reference>
+              <el-tag round style="margin-right: 5px; cursor: default;">
+                {{ dorm.name }}
+              </el-tag>
+            </template>
+            <template #default>
+              <div style="display: flex; gap: 10px; flex-direction: column">
+                <p>总床位：{{ dorm.totalBeds }}</p>
+                <p>已入住：{{ dorm.headCount }}</p>
+              </div>
+            </template>
+          </el-popover>
+          <el-tag v-else type="info">无</el-tag>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogViewAdminVisible = false">取消</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+
     <!-- 聚合查找对话框 -->
     <el-dialog v-model="dialogSearchVisible" title="聚合查找" draggable>
       <el-form class="register-form" :model="searchForm" label-position="left" label-width="75px">
@@ -467,6 +666,35 @@ const onDialogSearchResettingClick = () => {
           <el-button @click="onDialogSearchResettingClick" type="warning" plain>重置查找</el-button>
           <el-button @click="dialogSearchVisible = false">取消</el-button>
           <el-button type="primary" @click="onDialogSearchClick">查找</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 学生宿舍对话框 -->
+    <el-dialog v-model="dialogStudentDormVisible" title="学生宿舍信息" draggable>
+      <el-form class="register-form" :model="studentDormForm" label-position="left" label-width="75px">
+        <el-form-item label="学号">
+          <el-input v-model="studentDormForm.id" disabled/>
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="studentDormForm.name" disabled/>
+        </el-form-item>
+        <el-form-item label="宿舍楼">
+          <el-select v-model="studentDormForm.currentDormId" @change="onDialogStudentDormSelectChange"
+                     placeholder="选择宿舍楼">
+            <el-option v-for="dorm in studentDormForm.dorms" :label="dorm.name" :value="dorm.dormitoryId"/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="房间">
+          <el-select v-model="studentDormForm.currentRoomId" placeholder="选择房间">
+            <el-option v-for="room in studentDormForm.rooms" :label="room.name" :value="room.roomId"/>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogStudentDormVisible = false">取消</el-button>
+          <el-button type="primary" @click="onDialogStudentDormClick">保存</el-button>
         </span>
       </template>
     </el-dialog>
