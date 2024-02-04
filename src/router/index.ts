@@ -50,8 +50,14 @@ export const router = createRouter({
 
 // 导航守卫
 router.beforeEach(async (to, _from) => {
+    const user = localStorage.getItem(StoreEnum.USER);
+    // 已登录就跳转到主页
+    if (to.name === RouterViews.LOGIN && user !== null) {
+        return {name: RouterViews.MAIN};
+    }
+
     // 未登录的话跳转到登录页面
-    if (to.name !== 'login' && localStorage.getItem(StoreEnum.USER) === null) {
+    if (to.name !== RouterViews.LOGIN && user === null) {
         errorMsg('登录已过期，请重新登录');
         return {name: RouterViews.LOGIN}
     }

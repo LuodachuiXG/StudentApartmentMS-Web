@@ -104,6 +104,14 @@ const tabRoomDialogEditRoomForm = reactive({
   totalBeds: 0,
 });
 
+// 添加学生对话框是否显示
+const tabRoomDialogAddStudentVisible = ref(false);
+// 添加学生对话框表单
+const tabRoomDialogAddStudentForm = reactive({
+  // 房间 ID
+  roomId: -1,
+});
+
 
 /**
  * Vue 生命周期挂载
@@ -407,6 +415,17 @@ const onTabRoomTableEditClick = (room: Room) => {
 }
 
 /**
+ * “宿舍房间”选项卡，房间表格添加学生按钮点击事件
+ * @param room 房间实体类
+ */
+const onTabRoomTableAddStudentClick = (room: Room) => {
+  // 将当前房间数据写到添加学生对话框表单中
+  tabRoomDialogAddStudentForm.roomId = room.roomId;
+  // 显示编辑房间对话框
+  tabRoomDialogAddStudentVisible.value = true;
+}
+
+/**
  * “宿舍房间”选项卡，房间表格删除按钮点击事件
  * @param room 房间实体类
  */
@@ -704,6 +723,7 @@ const onDialogEditRoomSaveClick = () => {
             <el-table-column fixed="right" label="操作" width="180">
               <template #default=scope>
                 <el-button link type="primary" size="small" @click="onTabRoomTableEditClick(scope.row)">编辑</el-button>
+                <el-button link type="primary" size="small" @click="onTabRoomTableAddStudentClick(scope.row)">添加学生</el-button>
                 <el-button link type="danger" size="small" @click="onTabRoomTableDelClick(scope.row)">删除</el-button>
               </template>
             </el-table-column>
@@ -758,6 +778,22 @@ const onDialogEditRoomSaveClick = () => {
             <span class="dialog-footer">
               <el-button @click="tabRoomDialogEditRoomVisible = false">取消</el-button>
               <el-button type="primary" @click="onDialogEditRoomSaveClick">保存</el-button>
+            </span>
+          </template>
+        </el-dialog>
+
+
+        <!-- 添加学生对话框 -->
+        <el-dialog v-model="tabRoomDialogAddStudentVisible" title="添加学生" draggable>
+          <el-form class="register-form" :model="tabRoomDialogEditRoomForm" label-position="left" label-width="85px">
+            <el-form-item label="房间名">
+              <el-input v-model="tabRoomDialogEditRoomForm.roomName" placeholder="房间名称"></el-input>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="tabRoomDialogEditRoomVisible = false">取消</el-button>
+              <el-button type="primary" @click="onDialogEditRoomSaveClick">添加</el-button>
             </span>
           </template>
         </el-dialog>
