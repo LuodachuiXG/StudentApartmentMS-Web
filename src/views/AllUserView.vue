@@ -524,8 +524,8 @@ const onDialogStudentDormClick = () => {
       <el-button type="danger" plain @click="onToolBarDeleteClick"
                  :disabled="selectedUsers == null || selectedUsers.length == 0">删除
       </el-button>
-
     </div>
+
     <div class="table">
       <!-- 表格，显示用户 -->
       <el-table class="table" :data="pages?.data" border height="77vh" @selection-change="onTableSelectChange">

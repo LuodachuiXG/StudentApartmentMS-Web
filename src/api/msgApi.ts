@@ -33,15 +33,16 @@ export function delMsg(msgId: number) {
 }
 
 /**
- * 分页获取留言
+ * 分页获取宿舍楼所有留言
  * 仅管理员
  *
+ * @param dormId 宿舍楼 ID
  * @param page 当前页
  * @param size 每页条数
  */
-export function getMsgByPage(page: number, size: number) {
+export function getMsgByPage(dormId: number, page: number, size: number) {
     return service({
-        url: `/msg/${page}/${size}`,
+        url: `/msg/${dormId}/${page}/${size}`,
         method: 'GET'
     });
 }
