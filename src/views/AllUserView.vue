@@ -102,11 +102,11 @@ const studentDormForm = reactive({
   // 可选宿舍楼列表
   dorms: [] as Array<Dorm>,
   // 当前选择的宿舍楼
-  currentDormId: Number(),
+  currentDormId: null as number | null,
   // 可选宿舍房间列表
   rooms: [] as Array<Room>,
   // 当前选择的房间
-  currentRoomId: Number(),
+  currentRoomId: null as number | null,
 });
 
 /**
@@ -314,9 +314,9 @@ const onTableViewDormClick = (user: User) => {
  */
 const onDialogStudentDormSelectChange = () => {
   // 先清除当前用户的房间，不然可能导致房间选择器显示错误
-  studentDormForm.currentRoomId = Number();
+  studentDormForm.currentRoomId = null;
   // 获取当前宿舍的所有可选宿舍楼
-  roomsByDormID(studentDormForm.currentDormId).then((rooms) => {
+  roomsByDormID(studentDormForm.currentDormId!!).then((rooms) => {
     // 设置可选宿舍房间
     studentDormForm.rooms = rooms.data;
   }).catch((err) => {
@@ -333,8 +333,8 @@ const clearStudentDormForm = () => {
   studentDormForm.name = '';
   studentDormForm.dorms = [];
   studentDormForm.rooms = [];
-  studentDormForm.currentDormId = Number();
-  studentDormForm.currentRoomId = Number();
+  studentDormForm.currentDormId = null;
+  studentDormForm.currentRoomId = null;
 }
 
 /**
@@ -496,7 +496,7 @@ const onDialogSearchResettingClick = () => {
  * 学生宿舍对话框保存按钮点击事件
  */
 const onDialogStudentDormClick = () => {
-  updateRoomUserByRoomIdAndUserId(studentDormForm.currentRoomId, studentDormForm.userId).then(() => {
+  updateRoomUserByRoomIdAndUserId(studentDormForm.currentRoomId!!, studentDormForm.userId).then(() => {
     successMsg('保存成功');
     // 刷新用户信息
     refreshTableData();
