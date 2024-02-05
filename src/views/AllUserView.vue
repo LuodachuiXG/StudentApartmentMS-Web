@@ -62,7 +62,7 @@ const dialogViewAdminVisible = ref(false);
 // 查看管理员信息对话框表单
 const viewAdminForm = reactive({
   // 管理员工号
-  id: 0,
+  id: '',
   // 管理员姓名
   name: '',
   // 管理员电话
@@ -70,7 +70,7 @@ const viewAdminForm = reactive({
   // 管理员性别
   gender: '',
   // 管理的宿舍
-  dorms: [],
+  dorms: [] as Array<Dorm>,
 });
 
 // 是否显示聚合查找对话框
@@ -96,17 +96,17 @@ const studentDormForm = reactive({
   // 用户 ID
   userId: 0,
   // 当前学生学号
-  id: 0,
+  id: '',
   // 当前学生姓名
   name: '',
   // 可选宿舍楼列表
-  dorms: [],
+  dorms: [] as Array<Dorm>,
   // 当前选择的宿舍楼
-  currentDormId: null,
+  currentDormId: Number(),
   // 可选宿舍房间列表
-  rooms: [],
+  rooms: [] as Array<Room>,
   // 当前选择的房间
-  currentRoomId: null,
+  currentRoomId: Number(),
 });
 
 /**
@@ -314,7 +314,7 @@ const onTableViewDormClick = (user: User) => {
  */
 const onDialogStudentDormSelectChange = () => {
   // 先清除当前用户的房间，不然可能导致房间选择器显示错误
-  studentDormForm.currentRoomId = null;
+  studentDormForm.currentRoomId = Number();
   // 获取当前宿舍的所有可选宿舍楼
   roomsByDormID(studentDormForm.currentDormId).then((rooms) => {
     // 设置可选宿舍房间
@@ -329,12 +329,12 @@ const onDialogStudentDormSelectChange = () => {
  */
 const clearStudentDormForm = () => {
   studentDormForm.userId = 0;
-  studentDormForm.id = 0;
+  studentDormForm.id = '';
   studentDormForm.name = '';
   studentDormForm.dorms = [];
   studentDormForm.rooms = [];
-  studentDormForm.currentDormId = null;
-  studentDormForm.currentRoomId = null;
+  studentDormForm.currentDormId = Number();
+  studentDormForm.currentRoomId = Number();
 }
 
 /**

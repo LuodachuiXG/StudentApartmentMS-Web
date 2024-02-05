@@ -11,7 +11,7 @@ export interface StudentRoomInfo {
     // 房间总床位数
     totalBeds: number;
     // 宿舍楼管理员
-    admins: Arrar<User>;
+    admins: Array<User>;
     // 舍友
     roomMates: Array<User>;
 }

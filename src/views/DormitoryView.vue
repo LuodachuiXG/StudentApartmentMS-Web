@@ -120,9 +120,9 @@ interface StudentItem {
   label: string
 }
 
-// 添加学生对话框是否显示
+// 修改住户对话框是否显示
 const tabRoomDialogAddStudentVisible = ref(false);
-// 添加学生对话框表单
+// 修改住户对话框表单
 const tabRoomDialogAddStudentForm = reactive({
   // 房间 ID
   roomId: -1,
@@ -135,11 +135,11 @@ const tabRoomDialogAddStudentForm = reactive({
   // 从远程获取的学生
   students: Array<StudentItem>(),
   // 学生选择器，用户输入的数据
-  value: [],
+  value: [0]
 });
 
 // 学生界面，当前学生入住的宿舍信息
-const currentStudentRoom = ref<StudentRoomInfo>({});
+const currentStudentRoom = ref<StudentRoomInfo>({} as StudentRoomInfo);
 
 
 /**
@@ -147,7 +147,7 @@ const currentStudentRoom = ref<StudentRoomInfo>({});
  */
 onMounted(() => {
   // 获取当前登录用户
-  user.value = JSON.parse(localStorage.getItem(StoreEnum.USER)) as User;
+  user.value = JSON.parse(localStorage.getItem(StoreEnum.USER)!!) as User;
   // 判断当前用户是否是管理员
   if (user.value?.role === RoleEnum.ADMIN) {
     // 刷新宿舍信息
@@ -474,7 +474,7 @@ const onTabRoomTableAddStudentClick = (room: Room) => {
   tabRoomDialogAddStudentForm.students = studentItems;
   tabRoomDialogAddStudentForm.value = studentIds;
 
-  // 显示编辑房间对话框
+  // 显示修改住户对话框
   tabRoomDialogAddStudentVisible.value = true;
 }
 
@@ -687,7 +687,7 @@ const onDialogAddStudentSaveClick = () => {
   // 修改宿舍住户
   updateRoomUsers(tabRoomDialogAddStudentForm.roomId, tabRoomDialogAddStudentForm.value).then(() => {
     successMsg('保存成功');
-    // 关闭添加学生对话框
+    // 关闭修改住户对话框
     tabRoomDialogAddStudentVisible.value = false;
     // 清除表单内容
     clearDialogAddStudentForm();
