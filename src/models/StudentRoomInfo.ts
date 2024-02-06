@@ -6,6 +6,8 @@ import {User} from "./User";
 export interface StudentRoomInfo {
     // 宿舍楼名
     dormName: string;
+    // 宿舍楼 ID
+    dormId: number,
     // 房间名
     roomName: string;
     // 房间总床位数
